@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function hasUserProfile() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isDistrictOfficer() {
+      return hasUserProfile() && userRole() == 'district';
+    }
+
+    function isExtensionOfficer() {
+      return hasUserProfile() && userRole() == 'extension';
+    }
+
+    function isDealer() {
+      return hasUserProfile() && userRole() == 'dealer';
+    }
+
+    function isFarmer() {
+      return hasUserProfile() && userRole() == 'farmer';
+    }
+
+    match /users/{userId} {
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow read: if isSignedIn() && (request.auth.uid == userId || isDistrictOfficer());
+      allow update: if isSignedIn() && (request.auth.uid == userId || isDistrictOfficer());
+      allow delete: if false;
+    }
+
+    match /farmers/{docId} {
+      allow read: if true;
+      allow create: if isFarmer() || isExtensionOfficer() || isDistrictOfficer();
+      allow update, delete: if isExtensionOfficer() || isDistrictOfficer();
+    }
+
+    match /reports/{docId} {
+      allow read: if true;
+      allow create: if hasUserProfile();
+      allow update, delete: if isExtensionOfficer() || isDistrictOfficer();
+    }
+
+    match /advisories/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isExtensionOfficer() || isDistrictOfficer();
+    }
+
+    match /inventory/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isDealer() || isDistrictOfficer();
+    }
+  }
+}
