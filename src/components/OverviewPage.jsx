@@ -1,12 +1,15 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import homeBackground from '../assets/background.jpg'
 import {
   aboutHighlights,
   contactChannels,
-  footerColumns,
+  contactDetails,
+  faqItems,
   homeAudience,
   homeBenefits,
   homeFeatureGroups,
+  operationsHighlights,
   publicNavLinks,
   quickStats,
   roleCards,
@@ -100,6 +103,8 @@ function FeatureIcon({ type }) {
 }
 
 function OverviewPage() {
+  const [isNavOpen, setIsNavOpen] = useState(false)
+
   return (
     <section
       className="page-grid home-page"
@@ -107,70 +112,87 @@ function OverviewPage() {
         '--home-background-image': `url(${homeBackground})`,
       }}
     >
-      <article className="content-card full-span public-nav-shell">
-        <div className="public-nav">
-          <div className="public-brand">
-            <span className="eyebrow">AgroLink Platform</span>
-            <strong>Smart agricultural service delivery for Bushenyi District</strong>
-          </div>
-          <div className="public-nav-links">
-            {publicNavLinks.map((item) => (
-              <a key={item.href} href={item.href}>
-                {item.label}
-              </a>
-            ))}
-            <NavLink to="/access" className="public-nav-cta">
-              Sign in
-            </NavLink>
-          </div>
-        </div>
-      </article>
-
-      <article className="hero-panel overview-hero">
-        <div className="hero-copy-block">
-          <span className="eyebrow">Smart Agricultural Information Platform</span>
-          <h2>
-            One platform for agricultural information, field reporting, and
-            agro-input service delivery.
-          </h2>
-          <p>
-            AgroLink helps farmers, extension officers, agro-input dealers, and
-            district agriculture offices work together more effectively. It is
-            designed to improve communication, advisory services, disease and
-            pest reporting, and oversight of agricultural activities.
-          </p>
-          <div className="hero-cta-row">
-            <NavLink to="/access" className="primary-button">
-              Sign in to continue
-            </NavLink>
-          </div>
-        </div>
-
-        <div className="hero-illustration-card">
-          <div className="hero-illustration">
-            <div className="field-wave field-wave-one" />
-            <div className="field-wave field-wave-two" />
-            <div className="field-wave field-wave-three" />
-            <div className="illustration-sun" />
-            <div className="illustration-panel illustration-panel-left">
-              <strong>Field reporting</strong>
-              <span>Early alerts move faster</span>
+      <article className="full-span home-hero-stage">
+        <div className="public-nav-shell public-nav-shell-overlay">
+          <div className="public-nav">
+            <div className="public-brand">
+              <span className="eyebrow">AgroLink Platform</span>
+              <strong>Smart agricultural service delivery for Bushenyi District</strong>
             </div>
-            <div className="illustration-panel illustration-panel-right">
-              <strong>District visibility</strong>
-              <span>Shared operational picture</span>
+            <button
+              type="button"
+              className="public-nav-toggle"
+              aria-label="Toggle public navigation"
+              onClick={() => setIsNavOpen((current) => !current)}
+            >
+              {isNavOpen ? 'Close' : 'Menu'}
+            </button>
+            <div className={`public-nav-links ${isNavOpen ? 'public-nav-links-open' : ''}`}>
+              {publicNavLinks.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsNavOpen(false)}
+                >
+                  {item.label}
+                </a>
+              ))}
+              <NavLink
+                to="/access"
+                className="public-nav-cta"
+                onClick={() => setIsNavOpen(false)}
+              >
+                Sign in
+              </NavLink>
             </div>
           </div>
+        </div>
+        <article className="hero-panel overview-hero">
+          <div className="hero-copy-block">
+            <span className="eyebrow">Smart Agricultural Information Platform</span>
+            <h2>
+              One platform for agricultural information, field reporting, and
+              agro-input service delivery.
+            </h2>
+            <p>
+              AgroLink helps farmers, extension officers, agro-input dealers, and
+              district agriculture offices work together more effectively. It is
+              designed to improve communication, advisory services, disease and
+              pest reporting, and oversight of agricultural activities.
+            </p>
+            <div className="hero-cta-row">
+              <NavLink to="/access" className="primary-button">
+                Sign in to continue
+              </NavLink>
+            </div>
+          </div>
 
-          <div className="stat-grid compact-stat-grid">
-            {quickStats.map((item) => (
-              <div key={item.label} className="stat-card">
-                <strong>{item.value}</strong>
-                <span>{item.label}</span>
+          <div className="hero-illustration-card">
+            <div className="hero-illustration">
+              <div className="field-wave field-wave-one" />
+              <div className="field-wave field-wave-two" />
+              <div className="field-wave field-wave-three" />
+              <div className="illustration-sun" />
+              <div className="illustration-panel illustration-panel-left">
+                <strong>Field reporting</strong>
+                <span>Early alerts move faster</span>
               </div>
-            ))}
+              <div className="illustration-panel illustration-panel-right">
+                <strong>District visibility</strong>
+                <span>Shared operational picture</span>
+              </div>
+            </div>
+
+            <div className="stat-grid compact-stat-grid">
+              {quickStats.map((item) => (
+                <div key={item.label} className="stat-card">
+                  <strong>{item.value}</strong>
+                  <span>{item.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </article>
       </article>
 
       <article className="content-card" id="about">
@@ -218,6 +240,26 @@ function OverviewPage() {
               <FeatureIcon type={feature.icon} />
               <strong>{feature.title}</strong>
               <p>{feature.text}</p>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article className="content-card full-span" id="operations">
+        <div className="section-title">
+          <span className="eyebrow">Operations</span>
+          <h3>The working capabilities behind the platform</h3>
+        </div>
+        <p className="section-lead">
+          AgroLink is not just an information page. It supports the operational
+          cycle of registration, reporting, advisory response, supply tracking,
+          and district monitoring.
+        </p>
+        <div className="operations-grid">
+          {operationsHighlights.map((item) => (
+            <div key={item.title} className="feature-card feature-card-soft">
+              <strong>{item.title}</strong>
+              <p>{item.text}</p>
             </div>
           ))}
         </div>
@@ -298,7 +340,7 @@ function OverviewPage() {
       <article className="content-card" id="contact">
         <div className="section-title">
           <span className="eyebrow">Contact</span>
-          <h3>Who this platform is intended to support</h3>
+          <h3>Support, coordination, and stakeholder access</h3>
         </div>
         <p className="section-lead">
           Use the access page to sign in, register the right stakeholder role,
@@ -312,28 +354,71 @@ function OverviewPage() {
             </div>
           ))}
         </div>
-      </article>
-
-      <footer className="content-card full-span public-footer">
-        <div>
-          <span className="eyebrow">AgroLink</span>
-          <h3>Smart Agricultural Information and Agro-Input Management System</h3>
-          <p>
-            Designed to strengthen farmer, extension, dealer, and local
-            government interaction in Bushenyi District.
-          </p>
-        </div>
-        <div className="footer-columns">
-          {footerColumns.map((column) => (
-            <div key={column.title} className="footer-column">
-              <strong>{column.title}</strong>
-              {column.items.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
+        <div className="checklist">
+          {contactDetails.map((item) => (
+            <div key={item} className="checklist-item">
+              {item}
             </div>
           ))}
         </div>
-      </footer>
+      </article>
+
+      <article className="content-card">
+        <div className="section-title">
+          <span className="eyebrow">Support Centre</span>
+          <h3>Modern platform guidance for approved users and stakeholders</h3>
+        </div>
+        <p className="section-lead">
+          The platform includes a public information layer for orientation and a
+          protected operational layer for approved agricultural roles.
+        </p>
+        <div className="message-stack">
+          <div className="message-card">
+            <strong>Before sign-in</strong>
+            <p>
+              Learn what the platform does, who it serves, and how district
+              agricultural coordination is supported.
+            </p>
+          </div>
+          <div className="message-card">
+            <strong>After sign-in</strong>
+            <p>
+              Enter the dashboard assigned to your role and access the records,
+              forms, and monitoring actions meant for your responsibility.
+            </p>
+          </div>
+          <div className="message-card">
+            <strong>Need help?</strong>
+            <p>
+              Use the contact and FAQ sections to understand access, support,
+              and the expected day-to-day operations of the system.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article className="content-card full-span" id="faqs">
+        <div className="section-title">
+          <span className="eyebrow">FAQs</span>
+          <h3>Common questions about the platform</h3>
+        </div>
+        <div className="faq-grid">
+          {faqItems.map((item) => (
+            <div key={item.question} className="faq-card">
+              <strong>{item.question}</strong>
+              <p>{item.answer}</p>
+            </div>
+          ))}
+        </div>
+        <div className="hero-cta-row faq-cta-row">
+          <NavLink to="/access" className="primary-button">
+            Continue to sign in
+          </NavLink>
+          <a href="#contact" className="secondary-button faq-link-button">
+            Go to contact section
+          </a>
+        </div>
+      </article>
     </section>
   )
 }

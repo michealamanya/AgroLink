@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import {
+  NavLink,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 import './App.css'
 import { hasFirebaseConfig } from './firebase'
 import {
@@ -9,11 +16,13 @@ import {
   addReport,
   deleteAdvisory,
   deleteInventoryItem,
+  deleteReport,
   getAdvisories,
   getFarmers,
   getInventory,
   getReports,
   updateAdvisory,
+  updateFarmer,
   updateInventoryItem,
   updateReport,
 } from './services/agriculture'
@@ -36,16 +45,27 @@ import AccessPage from './components/AccessPage'
 import DashboardPage from './components/DashboardPage'
 import { createDisplayTimestamp } from './utils/records'
 
+function parseDashboardPath(pathname) {
+  const [, dashboardSegment, role, subview] = pathname.split('/')
+
+  return {
+    dashboardSegment,
+    role: role ?? null,
+    subview: subview ?? 'farm',
+  }
+}
+
 function PublicShell({ children }) {
   return <div className="public-shell">{children}</div>
 }
 
 function DashboardRouter({ state }) {
   const location = useLocation()
-  const routeRole = location.pathname.split('/').pop()
+  const { dashboardSegment, role: routeRole, subview: routeSubview } =
+    parseDashboardPath(location.pathname)
   const { currentRole, currentUser } = state
 
-  if (!dashboardConfig[routeRole]) {
+  if (dashboardSegment !== 'dashboard' || !dashboardConfig[routeRole]) {
     return <Navigate to="/" replace />
   }
 
@@ -53,30 +73,87 @@ function DashboardRouter({ state }) {
     return <Navigate to="/access" replace />
   }
 
-  return <DashboardPage role={routeRole} state={state} />
+  return (
+    <DashboardPage
+      role={routeRole}
+      state={state}
+      subview={routeSubview || 'farm'}
+    />
+  )
 }
 
 function WorkspaceShell({ dashboardLink, state }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [isNavOpen, setIsNavOpen] = useState(true)
   const {
+    authBusy,
     advisories,
     currentProfile,
     dataMode,
     farmers,
+    handleLogout,
     inventory,
     isLoadingData,
     reports,
     statusMessage,
     toast,
   } = state
+  const { role: activeRole, subview: activeSubview } = parseDashboardPath(
+    location.pathname,
+  )
+
+  const sectionLinksByRole = {
+    farmer: [
+      { label: 'My Farm', to: '/dashboard/farmer/farm' },
+      { label: 'My Profile', to: '/dashboard/farmer/profile' },
+      { label: 'Season Planner', to: '/dashboard/farmer/planner' },
+      { label: 'Input Requests', to: '/dashboard/farmer/requests' },
+      { label: 'My Reports', to: '/dashboard/farmer/reports' },
+      { label: 'Guidance', to: '/dashboard/farmer/guidance' },
+    ],
+    extension: [
+      { label: 'Response Queue', to: '/dashboard/extension' },
+      { label: 'Farmer Support', to: '/dashboard/extension' },
+    ],
+    dealer: [
+      { label: 'Stock Board', to: '/dashboard/dealer' },
+      { label: 'Supply Updates', to: '/dashboard/dealer' },
+    ],
+    district: [
+      { label: 'Situation Room', to: '/dashboard/district' },
+      { label: 'District Oversight', to: '/dashboard/district' },
+    ],
+  }
+
+  const roleSectionLinks = sectionLinksByRole[currentProfile?.role] ?? []
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${isNavOpen ? 'nav-open' : 'nav-collapsed'}`}>
       {toast ? <div className="toast-banner">{toast}</div> : null}
+      <button
+        type="button"
+        className={`nav-backdrop ${isNavOpen ? 'nav-backdrop-visible' : ''}`}
+        aria-label="Close navigation"
+        onClick={() => setIsNavOpen(false)}
+      />
 
-      <aside className="sidebar">
+      <aside className={`sidebar ${isNavOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <div className="brand-block">
-          <span className="brand-kicker">Uganda Smart Agriculture</span>
-          <strong className="brand-title">AgroLink</strong>
+          <div className="sidebar-head">
+            <div>
+              <span className="brand-kicker">Uganda Smart Agriculture</span>
+              <strong className="brand-title">AgroLink</strong>
+            </div>
+            <button
+              type="button"
+              className="nav-toggle-button nav-toggle-button-inline"
+              aria-label="Toggle navigation"
+              onClick={() => setIsNavOpen((current) => !current)}
+            >
+              {isNavOpen ? 'Hide' : 'Menu'}
+            </button>
+          </div>
           <p>
             Smart agricultural information and agro-input management for Bushenyi
             District.
@@ -90,6 +167,32 @@ function WorkspaceShell({ dashboardLink, state }) {
           <NavLink to="/">Landing page</NavLink>
           <NavLink to="/access">Account</NavLink>
         </nav>
+
+        {roleSectionLinks.length > 0 ? (
+          <div className="sidebar-card sidebar-section-card">
+            <span className="mini-heading">Quick Sections</span>
+            <div className="side-section-links">
+              {roleSectionLinks.map((link) => (
+                <button
+                  key={link.label}
+                  type="button"
+                  className={
+                    activeRole === 'farmer' &&
+                    parseDashboardPath(link.to).subview === activeSubview
+                      ? 'side-section-link side-section-link-active'
+                      : 'side-section-link'
+                  }
+                  onClick={() => {
+                    navigate(link.to)
+                    setIsNavOpen(false)
+                  }}
+                >
+                  {link.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="sidebar-card">
           <span className={`mode-pill mode-${dataMode}`}>
@@ -111,13 +214,62 @@ function WorkspaceShell({ dashboardLink, state }) {
             are available inside this signed-in environment.
           </p>
         </div>
+
+        <div className="sidebar-card sidebar-action-card">
+          <span className="mini-heading">Session Control</span>
+          <p>Sign out securely when you finish your operational work.</p>
+          <button
+            type="button"
+            className="secondary-button sidebar-logout-button"
+            onClick={handleLogout}
+            disabled={authBusy}
+          >
+            {authBusy ? 'Signing out...' : 'Log out'}
+          </button>
+        </div>
       </aside>
+
+      <button
+        type="button"
+        className={`floating-nav-fab ${isNavOpen ? 'floating-nav-fab-open' : ''}`}
+        aria-label={isNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
+        onClick={() => setIsNavOpen((current) => !current)}
+      >
+        <span className="floating-nav-fab-icon">{isNavOpen ? '×' : '☰'}</span>
+        <span className="floating-nav-fab-label">{isNavOpen ? 'Close' : 'Menu'}</span>
+      </button>
 
       <div className="main-panel">
         <header className="topbar">
-          <div>
-            <span className="page-kicker">Operational workspace</span>
-            <h1>Smart Agricultural Information System</h1>
+          <div className="topbar-main">
+            <button
+              type="button"
+              className="nav-toggle-button"
+              aria-label="Toggle navigation"
+              onClick={() => setIsNavOpen((current) => !current)}
+            >
+              {isNavOpen ? 'Close menu' : 'Open menu'}
+            </button>
+            <div>
+              <span className="page-kicker">Operational workspace</span>
+              <h1>Smart Agricultural Information System</h1>
+            </div>
+          </div>
+
+          <div className="topbar-actions">
+            <div className="session-chip">
+              <span className="mini-heading">Active Session</span>
+              <strong>{currentProfile?.name ?? 'Protected user'}</strong>
+              <span>{currentProfile?.role ?? 'Approved account'}</span>
+            </div>
+            <button
+              type="button"
+              className="secondary-button topbar-logout-button"
+              onClick={handleLogout}
+              disabled={authBusy}
+            >
+              {authBusy ? 'Signing out...' : 'Log out'}
+            </button>
           </div>
 
           <div className="topbar-summary">
@@ -140,13 +292,7 @@ function WorkspaceShell({ dashboardLink, state }) {
           </div>
         </header>
 
-        <Routes>
-          <Route
-            path="/dashboard/:role"
-            element={<DashboardRouter state={state} />}
-          />
-          <Route path="*" element={<Navigate to={dashboardLink?.path ?? '/'} replace />} />
-        </Routes>
+        <DashboardRouter state={state} />
       </div>
     </div>
   )
@@ -186,6 +332,14 @@ function App() {
     focus: '',
     channel: 'SMS alerts',
   })
+  const [farmerProfileForm, setFarmerProfileForm] = useState({
+    name: '',
+    parish: '',
+    focus: '',
+    acreage: '',
+    seasonGoal: '',
+    channel: 'SMS alerts',
+  })
   const [reportForm, setReportForm] = useState({
     title: '',
     location: '',
@@ -215,6 +369,26 @@ function App() {
     resolutionNotes: '',
     status: 'Officer assigned',
   })
+  const [ownReportForm, setOwnReportForm] = useState({
+    reportId: '',
+    title: '',
+    location: '',
+    severity: 'Medium',
+    reporter: '',
+  })
+  const [seasonPlanForm, setSeasonPlanForm] = useState({
+    season: '',
+    priority: 'Planting',
+    note: '',
+  })
+  const [inputRequestForm, setInputRequestForm] = useState({
+    item: '',
+    quantity: '',
+    urgency: 'Medium',
+    note: '',
+  })
+  const [seasonPlans, setSeasonPlans] = useState([])
+  const [inputRequests, setInputRequests] = useState([])
   const [toast, setToast] = useState('')
 
   const currentRole = currentProfile?.role ?? null
@@ -305,7 +479,7 @@ function App() {
         if (profile?.role) {
           const targetDashboard = `/dashboard/${profile.role}`
 
-          if (location.pathname !== targetDashboard) {
+          if (location.pathname === '/access') {
             navigate(targetDashboard, { replace: true })
           }
         }
@@ -318,6 +492,30 @@ function App() {
 
     return unsubscribe
   }, [location.pathname, navigate])
+
+  useEffect(() => {
+    if (currentProfile?.role !== 'farmer') {
+      return
+    }
+
+    const linkedProfile =
+      farmers.find((farmer) => {
+        if (currentUser?.uid) {
+          return farmer.createdById === currentUser.uid
+        }
+
+        return farmer.name === currentProfile?.name
+      }) ?? null
+
+    setFarmerProfileForm({
+      name: linkedProfile?.name ?? currentProfile?.name ?? '',
+      parish: linkedProfile?.parish ?? '',
+      focus: linkedProfile?.focus ?? '',
+      acreage: linkedProfile?.acreage ?? '',
+      seasonGoal: linkedProfile?.seasonGoal ?? '',
+      channel: linkedProfile?.channel ?? 'SMS alerts',
+    })
+  }, [currentProfile, currentUser, farmers])
 
   const requireSignedInUser = () => {
     if (!hasFirebaseConfig) {
@@ -469,6 +667,193 @@ function App() {
       severity: 'Medium',
       reporter: '',
     })
+  }
+
+  const handleFarmerProfileSubmit = async (event) => {
+    event.preventDefault()
+    if (!requireSignedInUser()) return
+
+    const linkedProfile =
+      farmers.find((farmer) => {
+        if (currentUser?.uid) {
+          return farmer.createdById === currentUser.uid
+        }
+
+        return farmer.name === currentProfile?.name
+      }) ?? null
+
+    const profilePayload = {
+      name: farmerProfileForm.name,
+      parish: farmerProfileForm.parish,
+      focus: farmerProfileForm.focus,
+      acreage: farmerProfileForm.acreage,
+      seasonGoal: farmerProfileForm.seasonGoal,
+      channel: farmerProfileForm.channel,
+      createdById: currentUser?.uid ?? 'demo-user',
+      createdByName: currentProfile?.name ?? farmerProfileForm.name,
+      createdByRole: currentProfile?.role ?? 'farmer',
+      updatedAtDisplay: createDisplayTimestamp(),
+    }
+
+    if (linkedProfile) {
+      try {
+        if (linkedProfile.id && !String(linkedProfile.id).startsWith('local-')) {
+          await updateFarmer(linkedProfile.id, profilePayload)
+        }
+
+        setFarmers((current) =>
+          current.map((farmer) =>
+            farmer.id === linkedProfile.id
+              ? {
+                  ...farmer,
+                  ...profilePayload,
+                }
+              : farmer,
+          ),
+        )
+        setStatusMessage('Your farmer profile was updated successfully.')
+        return
+      } catch (error) {
+        setStatusMessage(`Updating your farmer profile failed: ${error.message}`)
+        return
+      }
+    }
+
+    const nextFarmerProfile = {
+      id: createLocalId(),
+      ...profilePayload,
+      createdAtDisplay: createDisplayTimestamp(),
+    }
+
+    if (hasFirebaseConfig) {
+      try {
+        await addFarmer(nextFarmerProfile)
+        setDataMode('firebase')
+      } catch (error) {
+        setStatusMessage(
+          `Your profile could not be saved to the main record store, so it was kept locally instead: ${error.message}`,
+        )
+        setDataMode('demo')
+      }
+    }
+
+    setFarmers((current) => [nextFarmerProfile, ...current])
+    setStatusMessage('Your farmer profile was created successfully.')
+  }
+
+  const handleOwnReportUpdate = async (event) => {
+    event.preventDefault()
+
+    if (!ownReportForm.reportId) {
+      setStatusMessage('Choose one of your reports first before updating it.')
+      return
+    }
+
+    const updatePayload = {
+      title: ownReportForm.title,
+      location: ownReportForm.location,
+      severity: ownReportForm.severity,
+      reporter: ownReportForm.reporter,
+      updatedAtDisplay: createDisplayTimestamp(),
+    }
+
+    try {
+      if (!String(ownReportForm.reportId).startsWith('local-')) {
+        await updateReport(ownReportForm.reportId, updatePayload)
+      }
+
+      setReports((current) =>
+        current.map((report) =>
+          report.id === ownReportForm.reportId
+            ? { ...report, ...updatePayload }
+            : report,
+        ),
+      )
+      setOwnReportForm({
+        reportId: '',
+        title: '',
+        location: '',
+        severity: 'Medium',
+        reporter: '',
+      })
+      setStatusMessage('Your report was updated successfully.')
+    } catch (error) {
+      setStatusMessage(`Updating your report failed: ${error.message}`)
+    }
+  }
+
+  const handleOwnReportDelete = async (reportId) => {
+    if (!reportId) {
+      setStatusMessage('Choose one of your reports first before removing it.')
+      return
+    }
+
+    try {
+      if (!String(reportId).startsWith('local-')) {
+        await deleteReport(reportId)
+      }
+
+      setReports((current) => current.filter((report) => report.id !== reportId))
+      setOwnReportForm({
+        reportId: '',
+        title: '',
+        location: '',
+        severity: 'Medium',
+        reporter: '',
+      })
+      setStatusMessage('Your report was withdrawn successfully.')
+    } catch (error) {
+      setStatusMessage(`Removing your report failed: ${error.message}`)
+    }
+  }
+
+  const handleSeasonPlanSubmit = (event) => {
+    event.preventDefault()
+    if (!requireSignedInUser()) return
+
+    const nextPlan = {
+      id: createLocalId(),
+      season: seasonPlanForm.season,
+      priority: seasonPlanForm.priority,
+      note: seasonPlanForm.note,
+      createdById: currentUser?.uid ?? 'demo-user',
+      createdByName: currentProfile?.name ?? 'Farmer',
+      createdAtDisplay: createDisplayTimestamp(),
+    }
+
+    setSeasonPlans((current) => [nextPlan, ...current])
+    setSeasonPlanForm({
+      season: '',
+      priority: 'Planting',
+      note: '',
+    })
+    setStatusMessage('Your seasonal task plan was added successfully.')
+  }
+
+  const handleInputRequestSubmit = (event) => {
+    event.preventDefault()
+    if (!requireSignedInUser()) return
+
+    const nextRequest = {
+      id: createLocalId(),
+      item: inputRequestForm.item,
+      quantity: inputRequestForm.quantity,
+      urgency: inputRequestForm.urgency,
+      note: inputRequestForm.note,
+      status: 'Pending review',
+      createdById: currentUser?.uid ?? 'demo-user',
+      createdByName: currentProfile?.name ?? 'Farmer',
+      createdAtDisplay: createDisplayTimestamp(),
+    }
+
+    setInputRequests((current) => [nextRequest, ...current])
+    setInputRequestForm({
+      item: '',
+      quantity: '',
+      urgency: 'Medium',
+      note: '',
+    })
+    setStatusMessage('Your input request was submitted successfully.')
   }
 
   const handleAdvisorySubmit = async (event) => {
@@ -691,6 +1076,7 @@ function App() {
     currentUser,
     dataMode,
     farmerForm,
+    farmerProfileForm,
     farmers,
     filters,
     handleAdvisoryChannelChange,
@@ -698,28 +1084,42 @@ function App() {
     handleAdvisorySubmit,
     handleAuthSubmit,
     handleFarmerSubmit,
+    handleFarmerProfileSubmit,
     handleInventoryDelete,
     handleInventoryStatusChange,
     handleInventorySubmit,
     handleLogout,
+    handleInputRequestSubmit,
+    handleOwnReportDelete,
+    handleOwnReportUpdate,
     handleReportManagementSubmit,
     handleReportStatusChange,
     handleReportSubmit,
+    handleSeasonPlanSubmit,
     highSeverityReports,
+    inputRequestForm,
+    inputRequests,
     inventory,
     inventoryForm,
     isLoadingData,
+    ownReportForm,
     reportForm,
     reportManagementForm,
     reports,
+    seasonPlanForm,
+    seasonPlans,
     setAdvisoryForm,
     setAuthForm,
     setAuthMode,
     setFarmerForm,
+    setFarmerProfileForm,
     setFilters,
+    setInputRequestForm,
     setInventoryForm,
+    setOwnReportForm,
     setReportForm,
     setReportManagementForm,
+    setSeasonPlanForm,
     statusMessage,
     toast,
     totalVerifiedInputs,
@@ -757,6 +1157,10 @@ function App() {
         />
         <Route
           path="/dashboard/:role"
+          element={<DashboardRouter state={appState} />}
+        />
+        <Route
+          path="/dashboard/:role/*"
           element={<DashboardRouter state={appState} />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />

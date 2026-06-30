@@ -37,6 +37,11 @@ function AccessPage({ state }) {
             enter through protected authentication before reaching any dashboard
             or operational records.
           </p>
+          <div className="auth-benefit-strip">
+            <span>Protected records</span>
+            <span>Role-based routing</span>
+            <span>Operational actions</span>
+          </div>
         </div>
 
         <div className="auth-credential-card">

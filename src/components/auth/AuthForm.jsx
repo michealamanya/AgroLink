@@ -8,11 +8,12 @@ function AuthForm({
   return (
     <form className="smart-form auth-form" onSubmit={handleAuthSubmit}>
       {authMode === 'register' ? (
-        <>
+        <div className="auth-form-grid">
           <label>
             Full name
             <input
               required
+              placeholder="Enter full name"
               value={authForm.name}
               onChange={(event) =>
                 setAuthForm((current) => ({
@@ -43,6 +44,7 @@ function AuthForm({
             District
             <input
               required
+              placeholder="Bushenyi District"
               value={authForm.district}
               onChange={(event) =>
                 setAuthForm((current) => ({
@@ -52,7 +54,7 @@ function AuthForm({
               }
             />
           </label>
-        </>
+        </div>
       ) : null}
 
       <label>
@@ -60,6 +62,7 @@ function AuthForm({
         <input
           required
           type="email"
+          placeholder="name@example.com"
           value={authForm.email}
           onChange={(event) =>
             setAuthForm((current) => ({
@@ -75,6 +78,11 @@ function AuthForm({
         <input
           required
           type="password"
+          placeholder={
+            authMode === 'register'
+              ? 'Create a strong password'
+              : 'Enter your password'
+          }
           value={authForm.password}
           onChange={(event) =>
             setAuthForm((current) => ({
@@ -84,6 +92,12 @@ function AuthForm({
           }
         />
       </label>
+
+      <div className="auth-helper-copy">
+        {authMode === 'register'
+          ? 'Create an account with the stakeholder role that matches your approved operational responsibility.'
+          : 'Use your assigned account details to continue into the full application workspace.'}
+      </div>
 
       <button type="submit" className="primary-button auth-submit" disabled={authBusy}>
         {authBusy

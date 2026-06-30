@@ -100,8 +100,10 @@ export const homeAudience = [
 export const publicNavLinks = [
   { label: 'About', href: '#about' },
   { label: 'Features', href: '#features' },
+  { label: 'Operations', href: '#operations' },
   { label: 'Roles', href: '#roles' },
   { label: 'Contact', href: '#contact' },
+  { label: 'FAQs', href: '#faqs' },
 ]
 
 export const aboutHighlights = [
@@ -146,6 +148,94 @@ export const footerColumns = [
     title: 'Operations',
     items: ['Dealer inventory visibility', 'District monitoring', 'Role-based access'],
   },
+]
+
+export const farmerOperations = [
+  {
+    title: 'Season readiness',
+    text: 'Review advisories, confirm seed and input availability, and prepare the next planting cycle with fewer last-minute gaps.',
+  },
+  {
+    title: 'Field health watch',
+    text: 'Track emerging crop and livestock alerts, then escalate unusual disease or pest symptoms before losses spread.',
+  },
+  {
+    title: 'Input planning',
+    text: 'Check verified stock records before purchasing seed, spray, or animal health products from local suppliers.',
+  },
+  {
+    title: 'Farmer support record',
+    text: 'Keep farmer profile information current so extension teams can respond with more relevant location-based advice.',
+  },
+]
+
+export const farmerActionPillars = [
+  'Check active advisories before field work begins.',
+  'Log a field issue as soon as symptoms appear.',
+  'Compare verified input status before buying.',
+  'Keep parish and production focus details current.',
+]
+
+export const operationsHighlights = [
+  {
+    title: 'Farmer onboarding and profiling',
+    text:
+      'Register farmers by parish, production focus, and preferred communication channel for more targeted support.',
+  },
+  {
+    title: 'Incident intake and escalation',
+    text:
+      'Capture pest, disease, and field condition alerts early, then route them to extension and district teams for response.',
+  },
+  {
+    title: 'Advisory publishing workflows',
+    text:
+      'Prepare guidance for different audiences and distribute it through SMS, web, or field bulletin channels.',
+  },
+  {
+    title: 'Verified input visibility',
+    text:
+      'Surface available agro-input stock and verification status so farmers and officers can make better decisions.',
+  },
+  {
+    title: 'District monitoring and follow-up',
+    text:
+      'Track reports, advisories, farmer activity, and supply records from one coordinated agricultural operations view.',
+  },
+  {
+    title: 'Role-based protected access',
+    text:
+      'Keep sensitive actions and records inside approved dashboards while still allowing the public to understand the platform value.',
+  },
+]
+
+export const faqItems = [
+  {
+    question: 'Who can use AgroLink?',
+    answer:
+      'The platform is intended for farmers, extension officers, agro-input dealers, and district agriculture offices working within a shared agricultural service system.',
+  },
+  {
+    question: 'Do all users see the same dashboard?',
+    answer:
+      'No. Each signed-in user is redirected to the dashboard that matches the role assigned to their account.',
+  },
+  {
+    question: 'What kind of information can be managed?',
+    answer:
+      'The platform supports farmer profiles, field incident reports, agricultural advisories, agro-input inventory records, and district-level monitoring activity.',
+  },
+  {
+    question: 'How does the platform help local government interaction?',
+    answer:
+      'It improves visibility, speeds up issue reporting, strengthens extension follow-up, and gives district teams a clearer view of agricultural activity and response pressure.',
+  },
+]
+
+export const contactDetails = [
+  'Bushenyi District agricultural coordination and service delivery support',
+  'Operational follow-up for advisory publishing, field reports, and input visibility',
+  'Protected access guidance for approved stakeholder accounts',
 ]
 
 export const quickStats = [

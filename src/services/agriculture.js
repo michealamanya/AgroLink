@@ -68,6 +68,10 @@ export function addFarmer(payload) {
   return createDocument('farmers', payload)
 }
 
+export function updateFarmer(id, payload) {
+  return updateDocument('farmers', id, payload)
+}
+
 export function getReports() {
   return readCollection('reports')
 }
@@ -78,6 +82,10 @@ export function addReport(payload) {
 
 export function updateReport(id, payload) {
   return updateDocument('reports', id, payload)
+}
+
+export function deleteReport(id) {
+  return deleteDocument('reports', id)
 }
 
 export function getAdvisories() {
