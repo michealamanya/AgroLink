@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ChecklistCard,
   DashboardHero,
@@ -15,6 +16,7 @@ import {
 } from './shared'
 
 function FarmerDashboard({ context }) {
+  const navigate = useNavigate()
   const {
     advisories,
     farmerActionPillars,
@@ -422,6 +424,8 @@ function FarmerDashboard({ context }) {
     return renderFarmHome()
   }
 
+  const isFocusedSubview = subview !== 'farm'
+
   return (
     <section className="page-grid">
       <DashboardHero
@@ -462,14 +466,44 @@ function FarmerDashboard({ context }) {
         <p className="section-lead">{activeScreen.text}</p>
       </article>
 
-      <div ref={screenWorkspaceRef} key={subview} className="screen-workspace full-span">
-        <div className="screen-panel-group page-grid">
-          {renderFarmerScreen()}
-        </div>
-      </div>
-
-      {subview === 'farm' ? (
+      {isFocusedSubview ? (
+        <section
+          ref={screenWorkspaceRef}
+          key={subview}
+          className="floating-screen-shell full-span"
+        >
+          <div className="floating-screen-topbar">
+            <div className="section-title">
+              <span className="eyebrow">Focused Screen</span>
+              <h3>{activeScreen.title}</h3>
+            </div>
+            <button
+              type="button"
+              className="secondary-button floating-screen-close"
+              onClick={() => navigate('/dashboard/farmer/farm')}
+            >
+              Back to overview
+            </button>
+          </div>
+          <p className="section-lead floating-screen-lead">{activeScreen.text}</p>
+          <div className="floating-screen-body">
+            <div className="screen-panel-group page-grid">
+              {renderFarmerScreen()}
+            </div>
+          </div>
+        </section>
+      ) : (
         <>
+          <div
+            ref={screenWorkspaceRef}
+            key={subview}
+            className="screen-workspace full-span"
+          >
+            <div className="screen-panel-group page-grid">
+              {renderFarmerScreen()}
+            </div>
+          </div>
+
           <ChecklistCard
             eyebrow="Operational Playbook"
             title="What this role should focus on today"
@@ -478,24 +512,6 @@ function FarmerDashboard({ context }) {
           />
 
           <FiltersCard filters={state.filters} setFilters={state.setFilters} />
-        </>
-      ) : (
-        <>
-          <ChecklistCard
-            eyebrow="Screen Guidance"
-            title={`How to use the ${activeScreen.eyebrow.toLowerCase()} workspace`}
-            lead={workflowNudge}
-            items={rolePlaybook.slice(0, 4)}
-          />
-
-          <FeedCard
-            eyebrow="Live Context"
-            title={workspace.secondaryTitle}
-            lead="Keep an eye on related field activity while working inside this focused screen."
-            items={workspace.secondary}
-            emptyTitle="No related activity yet"
-            emptyText="As more platform activity is recorded, supporting context will appear here."
-          />
         </>
       )}
     </section>
