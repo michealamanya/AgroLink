@@ -1,10 +1,13 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   getDocs,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
 } from 'firebase/firestore'
 import { db, hasFirebaseConfig } from '../firebase'
 
@@ -45,6 +48,18 @@ async function createDocument(name, payload) {
   return docRef.id
 }
 
+async function updateDocument(name, id, payload) {
+  ensureFirebase()
+
+  await updateDoc(doc(db, collections[name], id), payload)
+}
+
+async function deleteDocument(name, id) {
+  ensureFirebase()
+
+  await deleteDoc(doc(db, collections[name], id))
+}
+
 export function getFarmers() {
   return readCollection('farmers')
 }
@@ -61,6 +76,10 @@ export function addReport(payload) {
   return createDocument('reports', payload)
 }
 
+export function updateReport(id, payload) {
+  return updateDocument('reports', id, payload)
+}
+
 export function getAdvisories() {
   return readCollection('advisories')
 }
@@ -69,10 +88,26 @@ export function addAdvisory(payload) {
   return createDocument('advisories', payload)
 }
 
+export function updateAdvisory(id, payload) {
+  return updateDocument('advisories', id, payload)
+}
+
+export function deleteAdvisory(id) {
+  return deleteDocument('advisories', id)
+}
+
 export function getInventory() {
   return readCollection('inventory')
 }
 
 export function addInventoryItem(payload) {
   return createDocument('inventory', payload)
+}
+
+export function updateInventoryItem(id, payload) {
+  return updateDocument('inventory', id, payload)
+}
+
+export function deleteInventoryItem(id) {
+  return deleteDocument('inventory', id)
 }

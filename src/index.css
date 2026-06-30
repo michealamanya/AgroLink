@@ -1,19 +1,21 @@
 :root {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: Aptos, 'Segoe UI Variable', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #264031;
+  color: #2f4937;
   background:
-    radial-gradient(circle at top, rgba(255, 214, 135, 0.28), transparent 32%),
-    linear-gradient(180deg, #f3eedc 0%, #f6f3ea 32%, #edf2e7 100%);
+    radial-gradient(circle at top, rgba(244, 170, 84, 0.14), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(122, 180, 101, 0.1), transparent 24%),
+    linear-gradient(180deg, #f8f5ed 0%, #ffffff 38%, #f3f8f0 100%);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --heading-font: Georgia, 'Times New Roman', serif;
-  --heading-color: #173327;
-  --muted-text: #5c715f;
-  --accent-strong: #9d6b1c;
+  --heading-font: Aptos, 'Segoe UI Variable', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --heading-color: #1f402d;
+  --muted-text: #5f7666;
+  --accent-strong: #b96a1d;
+  --card-border: rgba(73, 116, 76, 0.12);
 }
 
 * {
@@ -27,6 +29,7 @@ html {
 body {
   margin: 0;
   min-width: 320px;
+  color: #2f4937;
 }
 
 body::before {
@@ -35,10 +38,20 @@ body::before {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px);
-  background-size: 72px 72px;
+    linear-gradient(rgba(120, 171, 106, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 170, 84, 0.06) 1px, transparent 1px);
+  background-size: 70px 70px;
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 75%);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(117, 174, 97, 0.1), transparent 18%),
+    radial-gradient(circle at 88% 72%, rgba(240, 175, 102, 0.1), transparent 16%);
 }
 
 a {
@@ -54,21 +67,29 @@ h2,
 h3 {
   font-family: var(--heading-font);
   color: var(--heading-color);
-  line-height: 1.1;
+  line-height: 1.06;
+  font-weight: 700;
 }
 
 h1 {
   font-size: clamp(2.8rem, 5vw, 5rem);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.05em;
 }
 
 h2 {
   font-size: clamp(2rem, 3vw, 3rem);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
 }
 
 h3 {
   font-size: 1.3rem;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 #root {
