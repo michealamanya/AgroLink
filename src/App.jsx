@@ -12,17 +12,24 @@ import { hasFirebaseConfig } from './firebase'
 import {
   addAdvisory,
   addFarmer,
+  addInputRequest,
   addInventoryItem,
   addReport,
+  addSeasonPlan,
   deleteAdvisory,
+  deleteInputRequest,
   deleteInventoryItem,
   deleteReport,
+  deleteSeasonPlan,
   getAdvisories,
   getFarmers,
+  getInputRequests,
   getInventory,
   getReports,
+  getSeasonPlans,
   updateAdvisory,
   updateFarmer,
+  updateInputRequest,
   updateInventoryItem,
   updateReport,
 } from './services/agriculture'
@@ -105,24 +112,41 @@ function WorkspaceShell({ dashboardLink, state }) {
 
   const sectionLinksByRole = {
     farmer: [
-      { label: 'My Farm', to: '/dashboard/farmer/farm' },
-      { label: 'My Profile', to: '/dashboard/farmer/profile' },
-      { label: 'Season Planner', to: '/dashboard/farmer/planner' },
-      { label: 'Input Requests', to: '/dashboard/farmer/requests' },
-      { label: 'My Reports', to: '/dashboard/farmer/reports' },
-      { label: 'Guidance', to: '/dashboard/farmer/guidance' },
+      { label: '🏡  Home',      to: '/dashboard/farmer/farm' },
+      { label: '👤  Profile',   to: '/dashboard/farmer/profile' },
+      { label: '📋  Planner',   to: '/dashboard/farmer/planner' },
+      { label: '📦  Requests',  to: '/dashboard/farmer/requests' },
+      { label: '⚠️  Reports',   to: '/dashboard/farmer/reports' },
+      { label: '💡  Guidance',  to: '/dashboard/farmer/guidance' },
+      { label: '❓  FAQs',      to: '/dashboard/farmer/faq' },
+      { label: '📞  Contact',   to: '/dashboard/farmer/contact' },
     ],
     extension: [
-      { label: 'Response Queue', to: '/dashboard/extension' },
-      { label: 'Farmer Support', to: '/dashboard/extension' },
+      { label: '🚨  Response Queue', to: '/dashboard/extension/queue' },
+      { label: '🌾  Farmer Support',  to: '/dashboard/extension/farmers' },
+      { label: '📢  Advisories',      to: '/dashboard/extension/advisory' },
+      { label: '📋  Field Reports',   to: '/dashboard/extension/reports' },
+      { label: '🔍  Filters',         to: '/dashboard/extension/filters' },
+      { label: '🗂️  All Records',     to: '/dashboard/extension/records' },
     ],
     dealer: [
-      { label: 'Stock Board', to: '/dashboard/dealer' },
-      { label: 'Supply Updates', to: '/dashboard/dealer' },
+      { label: '📦  Stock Board',     to: '/dashboard/dealer/stock' },
+      { label: '➕  Add Stock',        to: '/dashboard/dealer/add' },
+      { label: '📊  Demand Signals',  to: '/dashboard/dealer/demand' },
+      { label: '💡  Guidance',        to: '/dashboard/dealer/guidance' },
+      { label: '⚠️  Field Reports',   to: '/dashboard/dealer/reports' },
+      { label: '🔍  Filters',         to: '/dashboard/dealer/filters' },
+      { label: '🗂️  All Records',     to: '/dashboard/dealer/records' },
     ],
     district: [
-      { label: 'Situation Room', to: '/dashboard/district' },
-      { label: 'District Oversight', to: '/dashboard/district' },
+      { label: '🏛️  Situation Room',    to: '/dashboard/district/situation' },
+      { label: '🚨  Incident Response', to: '/dashboard/district/incidents' },
+      { label: '📢  Advisories',        to: '/dashboard/district/advisory' },
+      { label: '📦  Supply Visibility', to: '/dashboard/district/supply' },
+      { label: '🌾  Farmer Profiles',   to: '/dashboard/district/farmers' },
+      { label: '📋  Submit Report',     to: '/dashboard/district/reports' },
+      { label: '🔍  Filters',           to: '/dashboard/district/filters' },
+      { label: '🗂️  All Records',       to: '/dashboard/district/records' },
     ],
   }
 
@@ -177,14 +201,14 @@ function WorkspaceShell({ dashboardLink, state }) {
                   key={link.label}
                   type="button"
                   className={
-                    activeRole === 'farmer' &&
                     parseDashboardPath(link.to).subview === activeSubview
                       ? 'side-section-link side-section-link-active'
                       : 'side-section-link'
                   }
                   onClick={() => {
                     navigate(link.to)
-                    setIsNavOpen(false)
+                    // only close sidebar overlay on mobile
+                    if (window.innerWidth < 1220) setIsNavOpen(false)
                   }}
                 >
                   {link.label}
@@ -483,6 +507,20 @@ function App() {
             navigate(targetDashboard, { replace: true })
           }
         }
+
+        // Load farmer-specific persisted data after auth
+        if (profile?.role === 'farmer') {
+          try {
+            const [planData, requestData] = await Promise.all([
+              getSeasonPlans(user.uid),
+              getInputRequests(user.uid),
+            ])
+            if (planData.length > 0) setSeasonPlans(planData)
+            if (requestData.length > 0) setInputRequests(requestData)
+          } catch {
+            // non-fatal — local state still usable
+          }
+        }
       } catch (error) {
         setStatusMessage(
           `You are signed in, but your profile details could not be loaded: ${error.message}`,
@@ -638,7 +676,7 @@ function App() {
       location: reportForm.location,
       severity: reportForm.severity,
       status: 'Pending field response',
-      reporter: reportForm.reporter,
+      reporter: currentProfile?.name ?? reportForm.reporter,
       createdById: currentUser?.uid ?? 'demo-user',
       createdByName: currentProfile?.name ?? reportForm.reporter,
       createdByRole: currentProfile?.role ?? 'demo',
@@ -807,7 +845,7 @@ function App() {
     }
   }
 
-  const handleSeasonPlanSubmit = (event) => {
+  const handleSeasonPlanSubmit = async (event) => {
     event.preventDefault()
     if (!requireSignedInUser()) return
 
@@ -821,16 +859,38 @@ function App() {
       createdAtDisplay: createDisplayTimestamp(),
     }
 
+    if (hasFirebaseConfig) {
+      try {
+        const newId = await addSeasonPlan(nextPlan)
+        nextPlan.id = newId
+        setStatusMessage('Seasonal task saved to your plan.')
+        setDataMode('firebase')
+      } catch (error) {
+        setStatusMessage(`Plan saved locally — could not sync: ${error.message}`)
+        setDataMode('demo')
+      }
+    } else {
+      setStatusMessage('Plan saved locally (demo mode — will not persist after refresh).')
+    }
+
     setSeasonPlans((current) => [nextPlan, ...current])
-    setSeasonPlanForm({
-      season: '',
-      priority: 'Planting',
-      note: '',
-    })
-    setStatusMessage('Your seasonal task plan was added successfully.')
+    setSeasonPlanForm({ season: '', priority: 'Planting', note: '' })
   }
 
-  const handleInputRequestSubmit = (event) => {
+  const handleSeasonPlanDelete = async (planId) => {
+    if (!planId) return
+    try {
+      if (hasFirebaseConfig && !String(planId).startsWith('local-')) {
+        await deleteSeasonPlan(planId)
+      }
+      setSeasonPlans((current) => current.filter((p) => p.id !== planId))
+      setStatusMessage('Seasonal task removed.')
+    } catch (error) {
+      setStatusMessage(`Could not remove plan: ${error.message}`)
+    }
+  }
+
+  const handleInputRequestSubmit = async (event) => {
     event.preventDefault()
     if (!requireSignedInUser()) return
 
@@ -846,14 +906,48 @@ function App() {
       createdAtDisplay: createDisplayTimestamp(),
     }
 
+    if (hasFirebaseConfig) {
+      try {
+        const newId = await addInputRequest(nextRequest)
+        nextRequest.id = newId
+        setStatusMessage('Input request submitted.')
+        setDataMode('firebase')
+      } catch (error) {
+        setStatusMessage(`Request saved locally — could not sync: ${error.message}`)
+        setDataMode('demo')
+      }
+    } else {
+      setStatusMessage('Request saved locally (demo mode — will not persist after refresh).')
+    }
+
     setInputRequests((current) => [nextRequest, ...current])
-    setInputRequestForm({
-      item: '',
-      quantity: '',
-      urgency: 'Medium',
-      note: '',
-    })
-    setStatusMessage('Your input request was submitted successfully.')
+    setInputRequestForm({ item: '', quantity: '', urgency: 'Medium', note: '' })
+  }
+
+  const handleInputRequestDelete = async (requestId) => {
+    if (!requestId) return
+    try {
+      if (hasFirebaseConfig && !String(requestId).startsWith('local-')) {
+        await deleteInputRequest(requestId)
+      }
+      setInputRequests((current) => current.filter((r) => r.id !== requestId))
+      setStatusMessage('Input request withdrawn.')
+    } catch (error) {
+      setStatusMessage(`Could not withdraw request: ${error.message}`)
+    }
+  }
+
+  const handleInputRequestStatusChange = async (requestId, nextStatus) => {
+    try {
+      if (hasFirebaseConfig && !String(requestId).startsWith('local-')) {
+        await updateInputRequest(requestId, { status: nextStatus })
+      }
+      setInputRequests((current) =>
+        current.map((r) => r.id === requestId ? { ...r, status: nextStatus } : r),
+      )
+    } catch (error) {
+      setStatusMessage(`Could not update request: ${error.message}`)
+    }
   }
 
   const handleAdvisorySubmit = async (event) => {
@@ -1090,12 +1184,15 @@ function App() {
     handleInventorySubmit,
     handleLogout,
     handleInputRequestSubmit,
+    handleInputRequestDelete,
+    handleInputRequestStatusChange,
     handleOwnReportDelete,
     handleOwnReportUpdate,
     handleReportManagementSubmit,
     handleReportStatusChange,
     handleReportSubmit,
     handleSeasonPlanSubmit,
+    handleSeasonPlanDelete,
     highSeverityReports,
     inputRequestForm,
     inputRequests,

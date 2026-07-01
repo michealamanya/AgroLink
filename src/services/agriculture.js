@@ -8,6 +8,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  where,
 } from 'firebase/firestore'
 import { db, hasFirebaseConfig } from '../firebase'
 
@@ -16,6 +17,8 @@ const collections = {
   farmers: 'farmers',
   inventory: 'inventory',
   reports: 'reports',
+  seasonPlans: 'seasonPlans',
+  inputRequests: 'inputRequests',
 }
 
 function ensureFirebase() {
@@ -118,4 +121,50 @@ export function updateInventoryItem(id, payload) {
 
 export function deleteInventoryItem(id) {
   return deleteDocument('inventory', id)
+}
+
+export function getSeasonPlans(userId) {
+  ensureFirebase()
+  const collectionRef = collection(db, collections.seasonPlans)
+  const collectionQuery = query(
+    collectionRef,
+    where('createdById', '==', userId),
+    orderBy('createdAt', 'desc'),
+  )
+  return getDocs(collectionQuery).then((snapshot) =>
+    snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+  )
+}
+
+export function addSeasonPlan(payload) {
+  return createDocument('seasonPlans', payload)
+}
+
+export function deleteSeasonPlan(id) {
+  return deleteDocument('seasonPlans', id)
+}
+
+export function getInputRequests(userId) {
+  ensureFirebase()
+  const collectionRef = collection(db, collections.inputRequests)
+  const collectionQuery = query(
+    collectionRef,
+    where('createdById', '==', userId),
+    orderBy('createdAt', 'desc'),
+  )
+  return getDocs(collectionQuery).then((snapshot) =>
+    snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+  )
+}
+
+export function addInputRequest(payload) {
+  return createDocument('inputRequests', payload)
+}
+
+export function deleteInputRequest(id) {
+  return deleteDocument('inputRequests', id)
+}
+
+export function updateInputRequest(id, payload) {
+  return updateDocument('inputRequests', id, payload)
 }

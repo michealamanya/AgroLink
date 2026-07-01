@@ -99,10 +99,8 @@ function DashboardPage({ role, state, subview = 'farm' }) {
       if (state.currentUser?.uid) {
         return report.createdById === state.currentUser.uid
       }
-
       return report.createdByName === state.currentProfile?.name
     })
-    .slice(0, 4)
 
   const profileFocusTokens = (linkedFarmerProfile?.focus ?? '')
     .toLowerCase()
@@ -130,7 +128,6 @@ function DashboardPage({ role, state, subview = 'farm' }) {
         ? plan.createdById === state.currentUser.uid
         : plan.createdByName === state.currentProfile?.name,
     )
-    .slice(0, 4)
 
   const farmerInputRequests = state.inputRequests
     .filter((request) =>
@@ -138,7 +135,6 @@ function DashboardPage({ role, state, subview = 'farm' }) {
         ? request.createdById === state.currentUser.uid
         : request.createdByName === state.currentProfile?.name,
     )
-    .slice(0, 4)
 
   const context = {
     advisories: state.advisories,
@@ -166,7 +162,7 @@ function DashboardPage({ role, state, subview = 'farm' }) {
     role,
     rolePlaybook: rolePlaybooks[role] ?? rolePlaybooks.district,
     state,
-    subview: role === 'farmer' ? subview : 'overview',
+    subview: role === 'farmer' ? (subview ?? 'farm') : 'overview',
     workflowNudge: workflowNudges[role] ?? workflowNudges.district,
     workspace,
   }

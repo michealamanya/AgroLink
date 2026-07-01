@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ChecklistCard,
@@ -14,6 +14,152 @@ import {
   ReportFormCard,
   RoleMismatchCard,
 } from './shared'
+
+/* ─── static data ─────────────────────────────────────────────────────── */
+
+const FAQ_ITEMS = [
+  {
+    q: 'How do I update my farm profile?',
+    a: 'Go to the Profile section and fill in your parish, production focus, acreage, and season goal. Your profile drives personalized advisory delivery.',
+  },
+  {
+    q: 'What happens after I submit a field report?',
+    a: 'An extension officer is notified and assigned to follow up. Track the status of your report in the Reports section.',
+  },
+  {
+    q: 'How are advisories personalized for me?',
+    a: 'The platform matches advisory audience tags with your production focus. Keep your profile current for the best results.',
+  },
+  {
+    q: 'Can I request specific farming inputs?',
+    a: 'Yes. Use the Input Requests section to log what you need, quantity, and urgency. The request enters the supply tracking queue.',
+  },
+  {
+    q: 'What is the Season Planner for?',
+    a: 'It helps you organize tasks for the current farming cycle — planting, pest control, harvest planning — so nothing is missed.',
+  },
+  {
+    q: 'How do I withdraw a report submitted by mistake?',
+    a: 'In the Reports section, select the report and click "Withdraw report". This removes it from the active response queue.',
+  },
+]
+
+const CONTACT_ITEMS = [
+  {
+    icon: '🌾',
+    title: 'Extension Officer Support',
+    detail: 'Your assigned extension officer handles field visits, advisory clarifications, and urgent incident follow-up.',
+    cta: 'Log a field issue to get a response.',
+  },
+  {
+    icon: '🏛️',
+    title: 'District Agriculture Desk',
+    detail: 'For district-level concerns, supply issues, or account access problems — contact the production and marketing office.',
+    cta: 'Bushenyi District Production & Marketing Office',
+  },
+  {
+    icon: '💻',
+    title: 'Platform Access Support',
+    detail: 'Need help with your account, role assignment, or login issues? Use the account page to manage your session.',
+    cta: 'Visit the access page for account help.',
+  },
+]
+
+/* ─── nav config ──────────────────────────────────────────────────────── */
+
+const NAV_SECTIONS = [
+  { key: 'profile',  label: 'Profile',   icon: '👤', color: '#e8f5e9' },
+  { key: 'planner',  label: 'Planner',   icon: '📋', color: '#e3f2fd' },
+  { key: 'requests', label: 'Requests',  icon: '📦', color: '#fff8e1' },
+  { key: 'reports',  label: 'Reports',   icon: '⚠️', color: '#fce4ec' },
+  { key: 'guidance', label: 'Guidance',  icon: '💡', color: '#f3e5f5' },
+  { key: 'faq',      label: 'FAQs',      icon: '❓', color: '#e8eaf6' },
+  { key: 'contact',  label: 'Contact',   icon: '📞', color: '#e0f7fa' },
+]
+
+const SECTION_META = {
+  profile:  { eyebrow: 'My Profile',     title: 'Manage your farmer profile',       text: 'Keep your parish, production focus, and farm details current for better support.' },
+  planner:  { eyebrow: 'Season Planner', title: 'Plan the current farming season',  text: 'Organize seasonal tasks and priorities in one clear workspace.' },
+  requests: { eyebrow: 'Input Requests', title: 'Request the inputs you need',      text: 'Log seed, spray, or other input needs and track them against verified supply.' },
+  reports:  { eyebrow: 'My Reports',     title: 'Field issue management',           text: 'Submit, update, and follow up on pest or disease reports from your farm.' },
+  guidance: { eyebrow: 'Guidance',       title: 'Personalized farming advisories',  text: 'Advisories filtered to match your farm profile and production focus.' },
+  faq:      { eyebrow: 'FAQs',           title: 'Common questions answered',        text: 'Quick answers to help you get the most from the AgroLink farmer workspace.' },
+  contact:  { eyebrow: 'Contact',        title: 'Support and coordination',         text: 'Reach extension officers, the district desk, or platform support.' },
+}
+
+/* ─── SlidePanel ──────────────────────────────────────────────────────── */
+
+/**
+ * A panel that slides in from the right over the dashboard.
+ * Uses CSS classes driven by `open` prop so the transition is smooth.
+ */
+function SlidePanel({ sectionKey, open, onClose, children }) {
+  const panelRef = useRef(null)
+  const meta = SECTION_META[sectionKey] ?? {}
+
+  // trap focus inside the panel when open
+  useEffect(() => {
+    if (!open) return
+    const el = panelRef.current
+    if (!el) return
+    // move focus into panel
+    const firstFocusable = el.querySelector('button, input, select, textarea, a[href]')
+    firstFocusable?.focus()
+
+    function handleKey(e) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [open, onClose])
+
+  return (
+    <>
+      {/* dim backdrop */}
+      <div
+        className={`slide-backdrop ${open ? 'slide-backdrop-visible' : ''}`}
+        aria-hidden="true"
+        onClick={onClose}
+      />
+
+      {/* the panel itself */}
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={meta.title}
+        className={`slide-panel ${open ? 'slide-panel-open' : ''}`}
+      >
+        {/* panel header */}
+        <div className="slide-panel-header">
+          <div className="slide-panel-header-copy">
+            <span className="eyebrow">{meta.eyebrow}</span>
+            <h2 className="slide-panel-title">{meta.title}</h2>
+            <p className="slide-panel-subtitle">{meta.text}</p>
+          </div>
+          <button
+            type="button"
+            className="slide-panel-close"
+            aria-label="Close panel"
+            onClick={onClose}
+          >
+            <span aria-hidden="true">←</span>
+            <span>Back</span>
+          </button>
+        </div>
+
+        {/* panel body */}
+        <div className="slide-panel-body">
+          <div className="page-grid slide-panel-grid">
+            {children}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+/* ─── FarmerDashboard ─────────────────────────────────────────────────── */
 
 function FarmerDashboard({ context }) {
   const navigate = useNavigate()
@@ -42,142 +188,48 @@ function FarmerDashboard({ context }) {
     config,
   } = context
 
-  const subviewMeta = {
-    farm: {
-      eyebrow: 'My Farm',
-      title: 'Farmer overview workspace',
-      text: 'This screen brings together your farm identity, current signals, and operational records in one place.',
-    },
-    profile: {
-      eyebrow: 'My Profile',
-      title: 'Manage farmer profile details',
-      text: 'Update the farm record that powers personalized advisory delivery and extension support.',
-    },
-    planner: {
-      eyebrow: 'Season Planner',
-      title: 'Plan the current season clearly',
-      text: 'Track your seasonal tasks and priorities so the dashboard reflects what matters right now.',
-    },
-    requests: {
-      eyebrow: 'Input Requests',
-      title: 'Request the farm inputs you need',
-      text: 'Log the supplies you need so your dashboard becomes an operational request workspace, not just an information page.',
-    },
-    reports: {
-      eyebrow: 'My Reports',
-      title: 'Manage the issues you reported',
-      text: 'Create, update, and follow up on field reports you personally submitted through the platform.',
-    },
-    guidance: {
-      eyebrow: 'Guidance',
-      title: 'View personalized farming guidance',
-      text: 'See advisories and supporting updates that better match your production focus and current farm context.',
-    },
-  }
+  // Which section panel is currently open (null = none)
+  const [activePanel, setActivePanel] = useState(null)
+  const dashboardRef = useRef(null)
 
-  const activeScreen = subviewMeta[subview] ?? subviewMeta.farm
-  const screenWorkspaceRef = useRef(null)
-
+  // Sync URL-based subview → open panel on mount / subview change
   useEffect(() => {
-    screenWorkspaceRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    })
+    if (subview && subview !== 'farm') {
+      setActivePanel(subview)
+    } else {
+      setActivePanel(null)
+    }
   }, [subview])
 
-  function renderFarmHome() {
-    return (
-      <>
-        <div className="screen-panel full-span">
-          <ChecklistCard
-            eyebrow="Farm Workspace"
-            title="Your main farmer overview"
-            lead="This is the home screen for your personalized farmer account."
-            items={farmerActionPillars}
-          />
-        </div>
-        <div className="screen-panel">
-          <FarmerIdentityCard
-            linkedFarmerProfile={linkedFarmerProfile}
-            farmerOwnReports={farmerOwnReports}
-            farmerSeasonPlans={farmerSeasonPlans}
-            farmerInputRequests={farmerInputRequests}
-          />
-        </div>
-        <div className="screen-panel">
-          <article className="content-card">
-            <div className="section-title">
-              <span className="eyebrow">Farmer Snapshot</span>
-              <h3>Recent guidance, reports, and supply signals</h3>
-            </div>
-            <div className="message-stack">
-              <div className="message-card">
-                <strong>Latest advisory</strong>
-                <p>
-                  {latestAdvisory
-                    ? `${latestAdvisory.title} for ${latestAdvisory.audience}.`
-                    : 'No advisory has been published yet.'}
-                </p>
-              </div>
-              <div className="message-card">
-                <strong>Latest field report</strong>
-                <p>
-                  {latestReport
-                    ? `${latestReport.title} in ${latestReport.location} is currently ${latestReport.status}.`
-                    : 'No field reports have been logged yet.'}
-                </p>
-              </div>
-              <div className="message-card">
-                <strong>Verified input watch</strong>
-                <p>
-                  {latestVerifiedInput
-                    ? `${latestVerifiedInput.item} is available through ${latestVerifiedInput.dealer}.`
-                    : 'No verified input listing is visible yet.'}
-                </p>
-              </div>
-            </div>
-          </article>
-        </div>
-        <div className="screen-panel full-span">
-          <FeedCard
-            eyebrow="Live Workspace"
-            title={workspace.spotlightTitle}
-            lead="This board highlights the records that need the quickest attention in the current workflow."
-            items={workspace.spotlight}
-            emptyTitle="Nothing active yet"
-            emptyText="Once new field activity is captured, this space becomes the first place to review it."
-          />
-        </div>
-        <div className="screen-panel full-span">
-          <ManagementTable
-            advisories={advisories}
-            canManageAdvisories={false}
-            canManageReports={false}
-            canManageStock={false}
-            filteredInventory={filteredInventory}
-            filteredReports={filteredReports}
-            handleAdvisoryChannelChange={state.handleAdvisoryChannelChange}
-            handleAdvisoryDelete={state.handleAdvisoryDelete}
-            handleInventoryDelete={state.handleInventoryDelete}
-            handleInventoryStatusChange={state.handleInventoryStatusChange}
-            handleReportStatusChange={state.handleReportStatusChange}
-          />
-        </div>
-      </>
-    )
+  // When panel opens/closes, lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = activePanel ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [activePanel])
+
+  function openPanel(key) {
+    setActivePanel(key)
+    navigate(`/dashboard/farmer/${key}`, { replace: true })
   }
 
-  function renderProfileScreen() {
+  function closePanel() {
+    setActivePanel(null)
+    navigate('/dashboard/farmer/farm', { replace: true })
+  }
+
+  /* ── panel content renderers ───────────────────────────────────────── */
+
+  function renderProfilePanel() {
     return (
       <>
         <div className="screen-panel full-span">
           <ChecklistCard
-            eyebrow="Profile Workspace"
-            title="Keep your farmer identity accurate"
-            lead="This screen is dedicated to your personal farm record and the details that power personalized support."
+            eyebrow="Profile Tips"
+            title="Keep your identity accurate"
+            lead="Your profile drives personalized advisory delivery and extension targeting."
             items={[
               'Update your production focus after any major change.',
-              'Keep acreage details current for planning support.',
+              'Keep acreage current for planning support.',
               'Use a communication channel you check regularly.',
               'Refresh your season goal at the start of each cycle.',
             ]}
@@ -204,17 +256,17 @@ function FarmerDashboard({ context }) {
     )
   }
 
-  function renderPlannerScreen() {
+  function renderPlannerPanel() {
     return (
       <>
         <div className="screen-panel full-span">
           <ChecklistCard
-            eyebrow="Planner Workspace"
-            title="Organize this season around clear priorities"
+            eyebrow="Planner Tips"
+            title="Organize this season clearly"
             lead={workflowNudge}
             items={[
               'Capture each important task as a seasonal item.',
-              'Separate planting, pest control, and harvest planning clearly.',
+              'Separate planting, pest control, and harvest planning.',
               'Use notes for timing, labor, or risk reminders.',
               'Review the planner before each field work session.',
             ]}
@@ -225,34 +277,35 @@ function FarmerDashboard({ context }) {
             seasonPlanForm={state.seasonPlanForm}
             setSeasonPlanForm={state.setSeasonPlanForm}
             handleSeasonPlanSubmit={state.handleSeasonPlanSubmit}
+            handleSeasonPlanDelete={state.handleSeasonPlanDelete}
             farmerSeasonPlans={farmerSeasonPlans}
           />
         </div>
         <div className="screen-panel">
           <FeedCard
-            eyebrow="Planner Context"
+            eyebrow="Season Context"
             title="Signals affecting this season"
-            lead="Use recent operational signals to inform what should come first in your plan."
+            lead="Use recent field activity to inform what should come first in your plan."
             items={workspace.spotlight}
             emptyTitle="No active signals yet"
-            emptyText="Field activity and advisory updates will appear here when available."
+            emptyText="Field activity will appear here when available."
           />
         </div>
       </>
     )
   }
 
-  function renderRequestsScreen() {
+  function renderRequestsPanel() {
     return (
       <>
         <div className="screen-panel full-span">
           <ChecklistCard
-            eyebrow="Request Workspace"
-            title="Track the inputs you need to keep moving"
-            lead="This screen focuses on the practical supply side of your farming cycle."
+            eyebrow="Request Tips"
+            title="Track the inputs you need"
+            lead="Log supply needs early and track them against what is currently verified."
             items={[
               'Request inputs early before demand peaks.',
-              'Be clear about quantity and urgency.',
+              'Be specific about quantity and urgency.',
               'Add notes when a request is tied to a field problem.',
               'Compare requests against verified stock availability.',
             ]}
@@ -263,36 +316,37 @@ function FarmerDashboard({ context }) {
             inputRequestForm={state.inputRequestForm}
             setInputRequestForm={state.setInputRequestForm}
             handleInputRequestSubmit={state.handleInputRequestSubmit}
+            handleInputRequestDelete={state.handleInputRequestDelete}
             farmerInputRequests={farmerInputRequests}
           />
         </div>
         <div className="screen-panel">
           <FeedCard
-            eyebrow="Reference Board"
+            eyebrow="Available Inputs"
             title={workspace.tertiaryTitle}
-            lead="Compare your requests with the latest verified inputs visible in the platform."
+            lead="Compare your requests with verified inputs currently on the platform."
             items={workspace.tertiary}
-            emptyTitle="Reference board is empty"
-            emptyText="Verified input records will appear here once they are available."
+            emptyTitle="No verified inputs listed"
+            emptyText="Verified input records will appear here once available."
           />
         </div>
       </>
     )
   }
 
-  function renderReportsScreen() {
+  function renderReportsPanel() {
     return (
       <>
         <div className="screen-panel full-span">
           <ChecklistCard
-            eyebrow="Reports Workspace"
-            title="Manage issues you have raised from the field"
-            lead="This screen is focused on incident reporting, follow-up, and correction of submitted records."
+            eyebrow="Reporting Tips"
+            title="Manage issues from the field"
+            lead="Accurate, timely reports help extension officers respond faster."
             items={[
               'Log issues as soon as symptoms appear.',
               'Update report details if the situation changes.',
-              'Withdraw reports only when they were logged by mistake.',
-              'Check status changes for officer follow-up progress.',
+              'Withdraw reports only when logged by mistake.',
+              'Check status for officer follow-up progress.',
             ]}
           />
         </div>
@@ -314,120 +368,193 @@ function FarmerDashboard({ context }) {
         </div>
         <div className="screen-panel full-span">
           <FeedCard
-            eyebrow="My Activity"
-            title="Reports you have recently submitted"
-            lead="Track the latest issues you raised and watch how the response status changes over time."
+            eyebrow="My Reports"
+            title="Issues you have submitted"
+            lead="Track status updates and watch for officer responses."
             items={farmerOwnReports}
-            emptyTitle="No personal reports yet"
-            emptyText="Once you submit a field issue, it will appear here for follow-up."
+            emptyTitle="No reports submitted yet"
+            emptyText="Once you log a field issue, it will appear here."
           />
         </div>
       </>
     )
   }
 
-  function renderGuidanceScreen() {
+  function renderGuidancePanel() {
     return (
       <>
         <div className="screen-panel full-span">
-          <ChecklistCard
-            eyebrow="Guidance Workspace"
-            title="Use focused advisory information for better decisions"
-            lead="This screen prioritizes knowledge and recommendations that relate more directly to your farm profile."
-            items={[
-              'Read personalized advisories before field work begins.',
-              'Compare guidance with current reports and supply status.',
-              'Use verified input listings alongside advisory advice.',
-              'Review general updates even when no exact match exists.',
-            ]}
-          />
-        </div>
-        <div className="screen-panel full-span">
           <FeedCard
-            eyebrow="Personalized Guidance"
-            title="Advisories that match your farm profile"
-            lead="This feed prioritizes guidance that aligns with your production focus and broad farmer updates."
+            eyebrow="Personalized Advisories"
+            title="Guidance matched to your farm"
+            lead="These advisories align with your production focus and recent field activity."
             items={personalizedAdvisories}
             emptyTitle="No personalized advisories yet"
-            emptyText="When matching advisories are available, they will appear here first."
+            emptyText="Set your production focus in your profile to start getting matched advisories."
           />
         </div>
         <div className="screen-panel">
           <article className="content-card">
             <div className="section-title">
-              <span className="eyebrow">Farmer Snapshot</span>
-              <h3>Recent guidance, reports, and supply signals</h3>
+              <span className="eyebrow">Current Signals</span>
+              <h3>What the field is showing</h3>
             </div>
             <div className="message-stack">
               <div className="message-card">
                 <strong>Latest advisory</strong>
-                <p>
-                  {latestAdvisory
-                    ? `${latestAdvisory.title} for ${latestAdvisory.audience}.`
-                    : 'No advisory has been published yet.'}
-                </p>
+                <p>{latestAdvisory ? `${latestAdvisory.title} — for ${latestAdvisory.audience}.` : 'No advisories published yet.'}</p>
               </div>
               <div className="message-card">
                 <strong>Latest field report</strong>
-                <p>
-                  {latestReport
-                    ? `${latestReport.title} in ${latestReport.location} is currently ${latestReport.status}.`
-                    : 'No field reports have been logged yet.'}
-                </p>
+                <p>{latestReport ? `${latestReport.title} in ${latestReport.location}: ${latestReport.status}.` : 'No field reports logged yet.'}</p>
               </div>
               <div className="message-card">
-                <strong>Verified input watch</strong>
-                <p>
-                  {latestVerifiedInput
-                    ? `${latestVerifiedInput.item} is available through ${latestVerifiedInput.dealer}.`
-                    : 'No verified input listing is visible yet.'}
-                </p>
+                <strong>Verified supply watch</strong>
+                <p>{latestVerifiedInput ? `${latestVerifiedInput.item} available at ${latestVerifiedInput.dealer}.` : 'No verified inputs listed yet.'}</p>
               </div>
             </div>
           </article>
         </div>
         <div className="screen-panel">
           <FeedCard
-            eyebrow="Supporting Feed"
+            eyebrow="All Advisories"
             title={workspace.secondaryTitle}
-            lead="Use this panel for related records that provide context around the main operational queue."
+            lead="General advisories published for all farmer groups."
             items={workspace.secondary}
-            emptyTitle="No supporting records yet"
-            emptyText="As linked records are created, they will appear here to help teams interpret what is happening on the ground."
+            emptyTitle="No advisories yet"
+            emptyText="Extension advisories will appear here when published."
           />
         </div>
       </>
     )
   }
 
-  function renderFarmerScreen() {
-    if (subview === 'profile') {
-      return renderProfileScreen()
-    }
-
-    if (subview === 'planner') {
-      return renderPlannerScreen()
-    }
-
-    if (subview === 'requests') {
-      return renderRequestsScreen()
-    }
-
-    if (subview === 'reports') {
-      return renderReportsScreen()
-    }
-
-    if (subview === 'guidance') {
-      return renderGuidanceScreen()
-    }
-
-    return renderFarmHome()
+  function renderFaqPanel() {
+    return (
+      <>
+        <div className="screen-panel full-span">
+          <article className="content-card">
+            <div className="section-title">
+              <span className="eyebrow">Help Centre</span>
+              <h3>Common questions about your farmer dashboard</h3>
+            </div>
+            <p className="section-lead">
+              Find quick answers about how the platform works so you can get the most from your workspace.
+            </p>
+            <div className="faq-grid" style={{ marginTop: '16px' }}>
+              {FAQ_ITEMS.map((item) => (
+                <div key={item.q} className="faq-card">
+                  <strong>{item.q}</strong>
+                  <p>{item.a}</p>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+        <div className="screen-panel full-span">
+          <article className="content-card">
+            <div className="section-title">
+              <span className="eyebrow">Still Need Help?</span>
+              <h3>Use the right support channel</h3>
+            </div>
+            <div className="hero-cta-row">
+              <button type="button" className="primary-button" onClick={() => openPanel('contact')}>
+                Go to Contact
+              </button>
+              <button type="button" className="secondary-button" onClick={() => openPanel('reports')}>
+                Log a field issue
+              </button>
+            </div>
+          </article>
+        </div>
+      </>
+    )
   }
 
-  const isFocusedSubview = subview !== 'farm'
+  function renderContactPanel() {
+    return (
+      <>
+        <div className="screen-panel full-span">
+          <article className="content-card">
+            <div className="section-title">
+              <span className="eyebrow">Support Channels</span>
+              <h3>Who to reach and how</h3>
+            </div>
+            <p className="section-lead">
+              Use the right channel for your situation. Extension officers handle field issues; the district desk handles broader concerns.
+            </p>
+            <div className="contact-grid">
+              {CONTACT_ITEMS.map((item) => (
+                <div key={item.title} className="contact-card">
+                  <div style={{ fontSize: '1.8rem', marginBottom: '8px' }} aria-hidden="true">{item.icon}</div>
+                  <strong>{item.title}</strong>
+                  <p>{item.detail}</p>
+                  <span className="meta-note" style={{ marginTop: '8px', display: 'block', color: 'var(--green-solid)', fontWeight: 600 }}>{item.cta}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+        <div className="screen-panel">
+          <article className="content-card">
+            <div className="section-title">
+              <span className="eyebrow">Quick Actions</span>
+              <h3>Act right now</h3>
+            </div>
+            <div className="message-stack">
+              <div className="message-card">
+                <strong>Report a field issue</strong>
+                <p>Submit a pest, disease, or weather damage report to trigger officer response.</p>
+                <button type="button" className="primary-button" style={{ marginTop: '10px' }} onClick={() => openPanel('reports')}>
+                  Go to Reports
+                </button>
+              </div>
+              <div className="message-card">
+                <strong>Request farming inputs</strong>
+                <p>Log seed, spray, or other inputs you need before demand peaks.</p>
+                <button type="button" className="secondary-button" style={{ marginTop: '10px' }} onClick={() => openPanel('requests')}>
+                  Go to Requests
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div className="screen-panel">
+          <ChecklistCard
+            eyebrow="Contact Tips"
+            title="Getting the right help faster"
+            lead="A few things to know before reaching out."
+            items={[
+              'Extension officers respond to verified reports first.',
+              'Include your parish and production focus in any request.',
+              'For account issues, use the access page.',
+              'District-level concerns go to the production office.',
+            ]}
+          />
+        </div>
+      </>
+    )
+  }
+
+  function getPanelContent(key) {
+    switch (key) {
+      case 'profile':  return renderProfilePanel()
+      case 'planner':  return renderPlannerPanel()
+      case 'requests': return renderRequestsPanel()
+      case 'reports':  return renderReportsPanel()
+      case 'guidance': return renderGuidancePanel()
+      case 'faq':      return renderFaqPanel()
+      case 'contact':  return renderContactPanel()
+      default:         return null
+    }
+  }
+
+  /* ── main dashboard render ─────────────────────────────────────────── */
 
   return (
-    <section className="page-grid">
+    <section className="page-grid farmer-dashboard" ref={dashboardRef}>
+
+      {/* Hero stays visible always */}
       <DashboardHero
         role={role}
         config={config}
@@ -439,81 +566,142 @@ function FarmerDashboard({ context }) {
         <RoleMismatchCard currentRole={state.currentRole} role={role} />
       ) : null}
 
-      <article className="content-card full-span farmer-operations-panel">
+      {/* ── Welcome banner ── */}
+      <article className="content-card full-span farmer-welcome-card">
+        <div className="farmer-welcome-inner">
+          <div className="farmer-welcome-copy">
+            <span className="eyebrow">Welcome back</span>
+            <h3>
+              {linkedFarmerProfile?.name ?? state.currentProfile?.name ?? 'Farmer'}
+            </h3>
+            <p className="section-lead">
+              {linkedFarmerProfile
+                ? `${linkedFarmerProfile.parish} · ${linkedFarmerProfile.focus}`
+                : 'Set up your profile to get personalized support and advisories.'}
+            </p>
+          </div>
+          <div className="farmer-welcome-quick">
+            <button type="button" className="primary-button" onClick={() => openPanel('reports')}>
+              Log field issue
+            </button>
+            <button type="button" className="secondary-button" onClick={() => openPanel('guidance')}>
+              View guidance
+            </button>
+          </div>
+        </div>
+      </article>
+
+      {/* ── Farm identity card ── */}
+      <div className="full-span">
+        <FarmerIdentityCard
+          linkedFarmerProfile={linkedFarmerProfile}
+          farmerOwnReports={farmerOwnReports}
+          farmerSeasonPlans={farmerSeasonPlans}
+          farmerInputRequests={farmerInputRequests}
+        />
+      </div>
+
+      {/* ── Live signals ── */}
+      <article className="content-card">
         <div className="section-title">
-          <span className="eyebrow">Farmer Operations</span>
-          <h3>Advanced farmer support and field readiness</h3>
+          <span className="eyebrow">Live Signals</span>
+          <h3>What's happening now</h3>
+        </div>
+        <div className="message-stack">
+          <div className="message-card">
+            <strong>Latest advisory</strong>
+            <p>{latestAdvisory ? `${latestAdvisory.title} — for ${latestAdvisory.audience}.` : 'No advisories published yet.'}</p>
+          </div>
+          <div className="message-card">
+            <strong>Latest field report</strong>
+            <p>{latestReport ? `${latestReport.title} in ${latestReport.location}: ${latestReport.status}.` : 'No field reports logged yet.'}</p>
+          </div>
+          <div className="message-card">
+            <strong>Verified input watch</strong>
+            <p>{latestVerifiedInput ? `${latestVerifiedInput.item} at ${latestVerifiedInput.dealer}.` : 'No verified inputs listed yet.'}</p>
+          </div>
+        </div>
+      </article>
+
+      {/* ── Today's playbook ── */}
+      <ChecklistCard
+        eyebrow="Today's Playbook"
+        title="What to focus on"
+        lead={workflowNudge}
+        items={rolePlaybook}
+      />
+
+      {/* ── Section nav grid ── */}
+      <article className="content-card full-span">
+        <div className="section-title">
+          <span className="eyebrow">Your Workspace</span>
+          <h3>Open a section to get started</h3>
         </div>
         <p className="section-lead">
-          This workspace is designed to help a farmer move from information
-          access to practical day-to-day agricultural action.
+          Each section opens as its own focused workspace. You can go back to this home view any time.
         </p>
-        <div className="operations-grid">
-          {farmerOperations.map((item) => (
-            <div key={item.title} className="feature-card feature-card-soft">
-              <strong>{item.title}</strong>
-              <p>{item.text}</p>
-            </div>
+        <div className="farmer-section-grid">
+          {NAV_SECTIONS.map((section) => (
+            <button
+              key={section.key}
+              type="button"
+              className="farmer-section-card"
+              style={{ '--section-color': section.color }}
+              onClick={() => openPanel(section.key)}
+            >
+              <span className="farmer-section-icon" aria-hidden="true">{section.icon}</span>
+              <strong className="farmer-section-label">{section.label}</strong>
+              <span className="farmer-section-desc">{SECTION_META[section.key]?.text}</span>
+              <span className="farmer-section-arrow" aria-hidden="true">→</span>
+            </button>
           ))}
         </div>
       </article>
 
-      <article className="content-card full-span active-screen-banner">
-        <div className="section-title">
-          <span className="eyebrow">{activeScreen.eyebrow}</span>
-          <h3>{activeScreen.title}</h3>
-        </div>
-        <p className="section-lead">{activeScreen.text}</p>
-      </article>
+      {/* ── Recent activity feed ── */}
+      <div className="full-span">
+        <FeedCard
+          eyebrow="Recent Field Activity"
+          title={workspace.spotlightTitle}
+          lead="The latest reports and signals that need attention."
+          items={workspace.spotlight}
+          emptyTitle="No activity yet"
+          emptyText="Field reports will show here once created."
+        />
+      </div>
 
-      {isFocusedSubview ? (
-        <section
-          ref={screenWorkspaceRef}
-          key={subview}
-          className="floating-screen-shell full-span"
+      {/* ── Filters card ── */}
+      <FiltersCard filters={state.filters} setFilters={state.setFilters} />
+
+      {/* ── Management table (read-only for farmer) ── */}
+      <div className="full-span">
+        <ManagementTable
+          advisories={advisories}
+          canManageAdvisories={false}
+          canManageReports={false}
+          canManageStock={false}
+          filteredInventory={filteredInventory}
+          filteredReports={filteredReports}
+          handleAdvisoryChannelChange={state.handleAdvisoryChannelChange}
+          handleAdvisoryDelete={state.handleAdvisoryDelete}
+          handleInventoryDelete={state.handleInventoryDelete}
+          handleInventoryStatusChange={state.handleInventoryStatusChange}
+          handleReportStatusChange={state.handleReportStatusChange}
+        />
+      </div>
+
+      {/* ── Slide panels — rendered per section ── */}
+      {NAV_SECTIONS.map((section) => (
+        <SlidePanel
+          key={section.key}
+          sectionKey={section.key}
+          open={activePanel === section.key}
+          onClose={closePanel}
         >
-          <div className="floating-screen-topbar">
-            <div className="section-title">
-              <span className="eyebrow">Focused Screen</span>
-              <h3>{activeScreen.title}</h3>
-            </div>
-            <button
-              type="button"
-              className="secondary-button floating-screen-close"
-              onClick={() => navigate('/dashboard/farmer/farm')}
-            >
-              Back to overview
-            </button>
-          </div>
-          <p className="section-lead floating-screen-lead">{activeScreen.text}</p>
-          <div className="floating-screen-body">
-            <div className="screen-panel-group page-grid">
-              {renderFarmerScreen()}
-            </div>
-          </div>
-        </section>
-      ) : (
-        <>
-          <div
-            ref={screenWorkspaceRef}
-            key={subview}
-            className="screen-workspace full-span"
-          >
-            <div className="screen-panel-group page-grid">
-              {renderFarmerScreen()}
-            </div>
-          </div>
+          {getPanelContent(section.key)}
+        </SlidePanel>
+      ))}
 
-          <ChecklistCard
-            eyebrow="Operational Playbook"
-            title="What this role should focus on today"
-            lead={workflowNudge}
-            items={rolePlaybook}
-          />
-
-          <FiltersCard filters={state.filters} setFilters={state.setFilters} />
-        </>
-      )}
     </section>
   )
 }
