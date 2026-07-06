@@ -1,7 +1,9 @@
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
 } from 'firebase/auth'
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
@@ -58,4 +60,62 @@ export async function getUserProfile(uid) {
     id: snapshot.id,
     ...snapshot.data(),
   }
+}
+
+export async function loginWithGoogle(roleHint = 'farmer', districtHint = 'Bushenyi District') {
+  ensureFirebaseAuth()
+
+  const provider = new GoogleAuthProvider()
+  provider.setCustomParameters({ prompt: 'select_account' })
+
+  const credential = await signInWithPopup(auth, provider)
+  const user = credential.user
+
+  // Check if a profile already exists
+  const snap = await getDoc(doc(db, 'users', user.uid))
+
+  if (!snap.exists()) {
+    // No profile — sign them back out and throw a structured error
+    // so the UI knows to offer registration instead
+    await signOut(auth)
+    const err = new Error('NO_PROFILE')
+    err.code = 'auth/no-profile'
+    err.googleUser = {
+      name: user.displayName ?? '',
+      email: user.email ?? '',
+    }
+    throw err
+  }
+
+  // Profile exists — normal sign-in, return user
+  return user
+}
+
+/**
+ * Called when user chooses to register via Google.
+ * Always creates the account as a farmer by default.
+ * district defaults to Bushenyi District.
+ */
+export async function registerWithGoogle(district = 'Bushenyi District') {
+  ensureFirebaseAuth()
+
+  const provider = new GoogleAuthProvider()
+  provider.setCustomParameters({ prompt: 'select_account' })
+
+  const credential = await signInWithPopup(auth, provider)
+  const user = credential.user
+
+  // If a profile already exists, just sign in — don't overwrite
+  const snap = await getDoc(doc(db, 'users', user.uid))
+  if (!snap.exists()) {
+    await setDoc(doc(db, 'users', user.uid), {
+      createdAt: serverTimestamp(),
+      district,
+      email: user.email,
+      name: user.displayName ?? user.email,
+      role: 'farmer', // always farmer for Google sign-up
+    })
+  }
+
+  return user
 }

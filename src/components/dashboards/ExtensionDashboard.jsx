@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AdvisoryFormCard,
   ChecklistCard,
@@ -37,10 +37,16 @@ function ExtensionDashboard({ context }) {
   const {
     advisories, canManageAdvisories, canManageReports, canManageStock,
     filteredInventory, filteredReports, isAuthorized, metrics, role,
-    rolePlaybook, state, workflowNudge, workspace, config,
+    rolePlaybook, state, workflowNudge, workspace, config, subview,
   } = context
 
   const [activePanel, setActivePanel] = useState(null)
+
+  useEffect(() => {
+    if (subview && subview !== 'overview') setActivePanel(subview)
+    else setActivePanel(null)
+  }, [subview])
+
   const open  = (key) => setActivePanel(key)
   const close = () => setActivePanel(null)
 

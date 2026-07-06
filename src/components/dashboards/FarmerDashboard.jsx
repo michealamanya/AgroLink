@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ChecklistCard,
@@ -14,6 +14,7 @@ import {
   ReportFormCard,
   RoleMismatchCard,
 } from './shared'
+import SlidePanel from './SlidePanel'
 
 /* ─── static data ─────────────────────────────────────────────────────── */
 
@@ -87,78 +88,6 @@ const SECTION_META = {
   contact:  { eyebrow: 'Contact',        title: 'Support and coordination',         text: 'Reach extension officers, the district desk, or platform support.' },
 }
 
-/* ─── SlidePanel ──────────────────────────────────────────────────────── */
-
-/**
- * A panel that slides in from the right over the dashboard.
- * Uses CSS classes driven by `open` prop so the transition is smooth.
- */
-function SlidePanel({ sectionKey, open, onClose, children }) {
-  const panelRef = useRef(null)
-  const meta = SECTION_META[sectionKey] ?? {}
-
-  // trap focus inside the panel when open
-  useEffect(() => {
-    if (!open) return
-    const el = panelRef.current
-    if (!el) return
-    // move focus into panel
-    const firstFocusable = el.querySelector('button, input, select, textarea, a[href]')
-    firstFocusable?.focus()
-
-    function handleKey(e) {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
-  }, [open, onClose])
-
-  return (
-    <>
-      {/* dim backdrop */}
-      <div
-        className={`slide-backdrop ${open ? 'slide-backdrop-visible' : ''}`}
-        aria-hidden="true"
-        onClick={onClose}
-      />
-
-      {/* the panel itself */}
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={meta.title}
-        className={`slide-panel ${open ? 'slide-panel-open' : ''}`}
-      >
-        {/* panel header */}
-        <div className="slide-panel-header">
-          <div className="slide-panel-header-copy">
-            <span className="eyebrow">{meta.eyebrow}</span>
-            <h2 className="slide-panel-title">{meta.title}</h2>
-            <p className="slide-panel-subtitle">{meta.text}</p>
-          </div>
-          <button
-            type="button"
-            className="slide-panel-close"
-            aria-label="Close panel"
-            onClick={onClose}
-          >
-            <span aria-hidden="true">←</span>
-            <span>Back</span>
-          </button>
-        </div>
-
-        {/* panel body */}
-        <div className="slide-panel-body">
-          <div className="page-grid slide-panel-grid">
-            {children}
-          </div>
-        </div>
-      </div>
-    </>
-  )
-}
-
 /* ─── FarmerDashboard ─────────────────────────────────────────────────── */
 
 function FarmerDashboard({ context }) {
@@ -188,9 +117,7 @@ function FarmerDashboard({ context }) {
     config,
   } = context
 
-  // Which section panel is currently open (null = none)
   const [activePanel, setActivePanel] = useState(null)
-  const dashboardRef = useRef(null)
 
   // Sync URL-based subview → open panel on mount / subview change
   useEffect(() => {
@@ -552,7 +479,7 @@ function FarmerDashboard({ context }) {
   /* ── main dashboard render ─────────────────────────────────────────── */
 
   return (
-    <section className="page-grid farmer-dashboard" ref={dashboardRef}>
+    <section className="page-grid farmer-dashboard">
 
       {/* Hero stays visible always */}
       <DashboardHero
@@ -695,6 +622,7 @@ function FarmerDashboard({ context }) {
         <SlidePanel
           key={section.key}
           sectionKey={section.key}
+          meta={SECTION_META}
           open={activePanel === section.key}
           onClose={closePanel}
         >

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ChecklistCard,
   DashboardHero,
@@ -38,10 +38,16 @@ function DealerDashboard({ context }) {
     advisories, canManageAdvisories, canManageReports, canManageStock,
     filteredInventory, filteredReports, isAuthorized,
     latestReport, latestVerifiedInput, metrics, role,
-    rolePlaybook, state, workflowNudge, workspace, config,
+    rolePlaybook, state, workflowNudge, workspace, config, subview,
   } = context
 
   const [activePanel, setActivePanel] = useState(null)
+
+  useEffect(() => {
+    if (subview && subview !== 'overview') setActivePanel(subview)
+    else setActivePanel(null)
+  }, [subview])
+
   const open  = (key) => setActivePanel(key)
   const close = () => setActivePanel(null)
 

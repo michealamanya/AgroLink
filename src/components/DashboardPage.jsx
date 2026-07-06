@@ -162,7 +162,7 @@ function DashboardPage({ role, state, subview = 'farm' }) {
     role,
     rolePlaybook: rolePlaybooks[role] ?? rolePlaybooks.district,
     state,
-    subview: role === 'farmer' ? (subview ?? 'farm') : 'overview',
+    subview: subview ?? 'overview',
     workflowNudge: workflowNudges[role] ?? workflowNudges.district,
     workspace,
   }

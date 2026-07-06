@@ -8,6 +8,7 @@ import {
   useNavigate,
 } from 'react-router-dom'
 import './App.css'
+import './workspace.css'
 import { hasFirebaseConfig } from './firebase'
 import {
   addAdvisory,
@@ -36,8 +37,10 @@ import {
 import {
   getUserProfile,
   loginUser,
+  loginWithGoogle,
   logoutUser,
   registerUser,
+  registerWithGoogle,
   subscribeToAuth,
 } from './services/auth'
 import {
@@ -62,7 +65,8 @@ function parseDashboardPath(pathname) {
   }
 }
 
-function PublicShell({ children }) {
+function PublicShell({ children, fullWidth }) {
+  if (fullWidth) return <div>{children}</div>
   return <div className="public-shell">{children}</div>
 }
 
@@ -92,7 +96,6 @@ function DashboardRouter({ state }) {
 function WorkspaceShell({ dashboardLink, state }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const [isNavOpen, setIsNavOpen] = useState(true)
   const {
     authBusy,
     advisories,
@@ -106,217 +109,202 @@ function WorkspaceShell({ dashboardLink, state }) {
     statusMessage,
     toast,
   } = state
-  const { role: activeRole, subview: activeSubview } = parseDashboardPath(
-    location.pathname,
-  )
+  const { subview: activeSubview } = parseDashboardPath(location.pathname)
+
+  const roleColors = {
+    farmer: '#15803d', extension: '#1d4ed8', dealer: '#c2410c', district: '#7e22ce',
+  }
+  const roleAccent = roleColors[currentProfile?.role] ?? '#15803d'
+
+  const roleIcons = {
+    farmer: '🌾', extension: '🧑‍💼', dealer: '🏪', district: '🏛️',
+  }
 
   const sectionLinksByRole = {
     farmer: [
-      { label: '🏡  Home',      to: '/dashboard/farmer/farm' },
-      { label: '👤  Profile',   to: '/dashboard/farmer/profile' },
-      { label: '📋  Planner',   to: '/dashboard/farmer/planner' },
-      { label: '📦  Requests',  to: '/dashboard/farmer/requests' },
-      { label: '⚠️  Reports',   to: '/dashboard/farmer/reports' },
-      { label: '💡  Guidance',  to: '/dashboard/farmer/guidance' },
-      { label: '❓  FAQs',      to: '/dashboard/farmer/faq' },
-      { label: '📞  Contact',   to: '/dashboard/farmer/contact' },
+      { label: 'Home',      icon: '🏡', to: '/dashboard/farmer/farm' },
+      { label: 'Profile',   icon: '👤', to: '/dashboard/farmer/profile' },
+      { label: 'Planner',   icon: '📋', to: '/dashboard/farmer/planner' },
+      { label: 'Requests',  icon: '📦', to: '/dashboard/farmer/requests' },
+      { label: 'Reports',   icon: '⚠️', to: '/dashboard/farmer/reports' },
+      { label: 'Guidance',  icon: '💡', to: '/dashboard/farmer/guidance' },
+      { label: 'FAQs',      icon: '❓', to: '/dashboard/farmer/faq' },
+      { label: 'Contact',   icon: '📞', to: '/dashboard/farmer/contact' },
     ],
     extension: [
-      { label: '🚨  Response Queue', to: '/dashboard/extension/queue' },
-      { label: '🌾  Farmer Support',  to: '/dashboard/extension/farmers' },
-      { label: '📢  Advisories',      to: '/dashboard/extension/advisory' },
-      { label: '📋  Field Reports',   to: '/dashboard/extension/reports' },
-      { label: '🔍  Filters',         to: '/dashboard/extension/filters' },
-      { label: '🗂️  All Records',     to: '/dashboard/extension/records' },
+      { label: 'Response Queue', icon: '🚨', to: '/dashboard/extension/queue' },
+      { label: 'Farmer Support', icon: '🌾', to: '/dashboard/extension/farmers' },
+      { label: 'Advisories',     icon: '📢', to: '/dashboard/extension/advisory' },
+      { label: 'Field Reports',  icon: '📋', to: '/dashboard/extension/reports' },
+      { label: 'Filters',        icon: '🔍', to: '/dashboard/extension/filters' },
+      { label: 'All Records',    icon: '🗂️',  to: '/dashboard/extension/records' },
     ],
     dealer: [
-      { label: '📦  Stock Board',     to: '/dashboard/dealer/stock' },
-      { label: '➕  Add Stock',        to: '/dashboard/dealer/add' },
-      { label: '📊  Demand Signals',  to: '/dashboard/dealer/demand' },
-      { label: '💡  Guidance',        to: '/dashboard/dealer/guidance' },
-      { label: '⚠️  Field Reports',   to: '/dashboard/dealer/reports' },
-      { label: '🔍  Filters',         to: '/dashboard/dealer/filters' },
-      { label: '🗂️  All Records',     to: '/dashboard/dealer/records' },
+      { label: 'Stock Board',    icon: '📦', to: '/dashboard/dealer/stock' },
+      { label: 'Add Stock',      icon: '➕', to: '/dashboard/dealer/add' },
+      { label: 'Demand Signals', icon: '📊', to: '/dashboard/dealer/demand' },
+      { label: 'Guidance',       icon: '💡', to: '/dashboard/dealer/guidance' },
+      { label: 'Field Reports',  icon: '⚠️', to: '/dashboard/dealer/reports' },
+      { label: 'Filters',        icon: '🔍', to: '/dashboard/dealer/filters' },
+      { label: 'All Records',    icon: '🗂️',  to: '/dashboard/dealer/records' },
     ],
     district: [
-      { label: '🏛️  Situation Room',    to: '/dashboard/district/situation' },
-      { label: '🚨  Incident Response', to: '/dashboard/district/incidents' },
-      { label: '📢  Advisories',        to: '/dashboard/district/advisory' },
-      { label: '📦  Supply Visibility', to: '/dashboard/district/supply' },
-      { label: '🌾  Farmer Profiles',   to: '/dashboard/district/farmers' },
-      { label: '📋  Submit Report',     to: '/dashboard/district/reports' },
-      { label: '🔍  Filters',           to: '/dashboard/district/filters' },
-      { label: '🗂️  All Records',       to: '/dashboard/district/records' },
+      { label: 'Situation Room',    icon: '🏛️', to: '/dashboard/district/situation' },
+      { label: 'Incident Response', icon: '🚨', to: '/dashboard/district/incidents' },
+      { label: 'Advisories',        icon: '📢', to: '/dashboard/district/advisory' },
+      { label: 'Supply Visibility', icon: '📦', to: '/dashboard/district/supply' },
+      { label: 'Farmer Profiles',   icon: '🌾', to: '/dashboard/district/farmers' },
+      { label: 'Submit Report',     icon: '📋', to: '/dashboard/district/reports' },
+      { label: 'Filters',           icon: '🔍', to: '/dashboard/district/filters' },
+      { label: 'All Records',       icon: '🗂️',  to: '/dashboard/district/records' },
     ],
   }
 
   const roleSectionLinks = sectionLinksByRole[currentProfile?.role] ?? []
 
-  return (
-    <div className={`app-shell ${isNavOpen ? 'nav-open' : 'nav-collapsed'}`}>
-      {toast ? <div className="toast-banner">{toast}</div> : null}
-      <button
-        type="button"
-        className={`nav-backdrop ${isNavOpen ? 'nav-backdrop-visible' : ''}`}
-        aria-label="Close navigation"
-        onClick={() => setIsNavOpen(false)}
-      />
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Good morning'
+    if (h < 17) return 'Good afternoon'
+    return 'Good evening'
+  })()
 
-      <aside className={`sidebar ${isNavOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-        <div className="brand-block">
-          <div className="sidebar-head">
-            <div>
-              <span className="brand-kicker">Uganda Smart Agriculture</span>
-              <strong className="brand-title">AgroLink</strong>
-            </div>
-            <button
-              type="button"
-              className="nav-toggle-button nav-toggle-button-inline"
-              aria-label="Toggle navigation"
-              onClick={() => setIsNavOpen((current) => !current)}
-            >
-              {isNavOpen ? 'Hide' : 'Menu'}
-            </button>
-          </div>
-          <p>
-            Smart agricultural information and agro-input management for Bushenyi
-            District.
-          </p>
+  const highSeverity = reports.filter(r => r.severity === 'High' && r.status !== 'Resolved').length
+
+  return (
+    <div className="ws-shell">
+      {toast ? (
+        <div className="ws-toast" role="alert">{toast}</div>
+      ) : null}
+
+      {/* ── SIDEBAR ─────────────────────────────────────────────── */}
+      <aside className="ws-sidebar" aria-label="Workspace navigation">
+        {/* logo */}
+        <div className="ws-logo">
+          <div className="ws-logo-mark" style={{ background: roleAccent }}>A</div>
+          <span className="ws-logo-text">AgroLink</span>
         </div>
 
-        <nav className="side-nav" aria-label="Workspace">
-          {dashboardLink ? (
-            <NavLink to={dashboardLink.path}>{dashboardLink.label}</NavLink>
-          ) : null}
-          <NavLink to="/">Landing page</NavLink>
-          <NavLink to="/access">Account</NavLink>
+        {/* role badge */}
+        <div className="ws-role-badge">
+          <span className="ws-role-icon">{roleIcons[currentProfile?.role] ?? '🌱'}</span>
+          <div className="ws-role-info">
+            <span className="ws-role-name">{currentProfile?.name ?? 'User'}</span>
+            <span className="ws-role-tag" style={{ color: roleAccent }}>
+              {currentProfile?.role ?? 'member'}
+            </span>
+          </div>
+        </div>
+
+        {/* main nav */}
+        <nav className="ws-nav" aria-label="Main navigation">
+          <span className="ws-nav-group-label">Workspace</span>
+          {roleSectionLinks.map((link) => {
+            const isActive = parseDashboardPath(link.to).subview === activeSubview
+            return (
+              <button
+                key={link.to}
+                type="button"
+                className={`ws-nav-item ${isActive ? 'ws-nav-item-active' : ''}`}
+                style={isActive ? { '--nav-accent': roleAccent } : {}}
+                onClick={() => {
+                  navigate(link.to)
+                  if (window.innerWidth < 1024) document.activeElement?.blur()
+                }}
+              >
+                <span className="ws-nav-icon" aria-hidden="true">{link.icon}</span>
+                <span className="ws-nav-label">{link.label}</span>
+                {isActive ? <span className="ws-nav-pip" style={{ background: roleAccent }} /> : null}
+              </button>
+            )
+          })}
         </nav>
 
-        {roleSectionLinks.length > 0 ? (
-          <div className="sidebar-card sidebar-section-card">
-            <span className="mini-heading">Quick Sections</span>
-            <div className="side-section-links">
-              {roleSectionLinks.map((link) => (
-                <button
-                  key={link.label}
-                  type="button"
-                  className={
-                    parseDashboardPath(link.to).subview === activeSubview
-                      ? 'side-section-link side-section-link-active'
-                      : 'side-section-link'
-                  }
-                  onClick={() => {
-                    navigate(link.to)
-                    // only close sidebar overlay on mobile
-                    if (window.innerWidth < 1220) setIsNavOpen(false)
-                  }}
-                >
-                  {link.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
+        {/* divider */}
+        <div className="ws-sidebar-divider" />
 
-        <div className="sidebar-card">
-          <span className={`mode-pill mode-${dataMode}`}>
-            {isLoadingData ? 'Loading' : `${dataMode} mode`}
-          </span>
-          <p>{statusMessage}</p>
+        {/* utility nav */}
+        <nav className="ws-nav ws-nav-util" aria-label="Utility navigation">
+          <NavLink to="/" className="ws-nav-item">
+            <span className="ws-nav-icon" aria-hidden="true">🏠</span>
+            <span className="ws-nav-label">Public site</span>
+          </NavLink>
+          <NavLink to="/access" className="ws-nav-item">
+            <span className="ws-nav-icon" aria-hidden="true">👤</span>
+            <span className="ws-nav-label">Account</span>
+          </NavLink>
+        </nav>
+
+        {/* status pill */}
+        <div className="ws-status-pill">
+          <span className={`ws-status-dot ${dataMode === 'firebase' ? 'ws-status-live' : 'ws-status-demo'}`} />
+          <span className="ws-status-label">{isLoadingData ? 'Loading…' : dataMode === 'firebase' ? 'Live data' : 'Demo mode'}</span>
         </div>
 
-        <div className="sidebar-card">
-          <span className="mini-heading">Signed In</span>
-          <strong>{currentProfile?.name ?? 'Active user'}</strong>
-          <p>{currentProfile?.role ?? 'Protected workspace'}</p>
-        </div>
-
-        <div className="sidebar-card">
-          <span className="mini-heading">Workspace Scope</span>
-          <p>
-            Full records, workflow actions, and role-specific operational tools
-            are available inside this signed-in environment.
-          </p>
-        </div>
-
-        <div className="sidebar-card sidebar-action-card">
-          <span className="mini-heading">Session Control</span>
-          <p>Sign out securely when you finish your operational work.</p>
-          <button
-            type="button"
-            className="secondary-button sidebar-logout-button"
-            onClick={handleLogout}
-            disabled={authBusy}
-          >
-            {authBusy ? 'Signing out...' : 'Log out'}
-          </button>
-        </div>
+        {/* sign out */}
+        <button
+          type="button"
+          className="ws-signout"
+          onClick={handleLogout}
+          disabled={authBusy}
+        >
+          <span className="ws-nav-icon" aria-hidden="true">🚪</span>
+          <span className="ws-nav-label">{authBusy ? 'Signing out…' : 'Sign out'}</span>
+        </button>
       </aside>
 
-      <button
-        type="button"
-        className={`floating-nav-fab ${isNavOpen ? 'floating-nav-fab-open' : ''}`}
-        aria-label={isNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
-        onClick={() => setIsNavOpen((current) => !current)}
-      >
-        <span className="floating-nav-fab-icon">{isNavOpen ? '×' : '☰'}</span>
-        <span className="floating-nav-fab-label">{isNavOpen ? 'Close' : 'Menu'}</span>
-      </button>
+      {/* ── MAIN ────────────────────────────────────────────────── */}
+      <div className="ws-main">
 
-      <div className="main-panel">
-        <header className="topbar">
-          <div className="topbar-main">
-            <button
-              type="button"
-              className="nav-toggle-button"
-              aria-label="Toggle navigation"
-              onClick={() => setIsNavOpen((current) => !current)}
-            >
-              {isNavOpen ? 'Close menu' : 'Open menu'}
-            </button>
-            <div>
-              <span className="page-kicker">Operational workspace</span>
-              <h1>Smart Agricultural Information System</h1>
+        {/* topbar */}
+        <header className="ws-topbar">
+          <div className="ws-topbar-left">
+            <div className="ws-greeting">
+              <span className="ws-greeting-time">{greeting}</span>
+              <h1 className="ws-greeting-name">
+                {currentProfile?.name?.split(' ')[0] ?? 'Welcome'}
+              </h1>
             </div>
           </div>
 
-          <div className="topbar-actions">
-            <div className="session-chip">
-              <span className="mini-heading">Active Session</span>
-              <strong>{currentProfile?.name ?? 'Protected user'}</strong>
-              <span>{currentProfile?.role ?? 'Approved account'}</span>
+          <div className="ws-topbar-right">
+            {/* quick stats chips */}
+            <div className="ws-stat-chips">
+              <div className="ws-stat-chip">
+                <strong>{farmers.length}</strong>
+                <span>Farmers</span>
+              </div>
+              <div className="ws-stat-chip">
+                <strong>{reports.length}</strong>
+                <span>Reports</span>
+              </div>
+              {highSeverity > 0 ? (
+                <div className="ws-stat-chip ws-stat-chip-alert">
+                  <strong>{highSeverity}</strong>
+                  <span>High severity</span>
+                </div>
+              ) : null}
+              <div className="ws-stat-chip">
+                <strong>{inventory.length}</strong>
+                <span>Stock lines</span>
+              </div>
+              <div className="ws-stat-chip">
+                <strong>{advisories.length}</strong>
+                <span>Advisories</span>
+              </div>
             </div>
-            <button
-              type="button"
-              className="secondary-button topbar-logout-button"
-              onClick={handleLogout}
-              disabled={authBusy}
-            >
-              {authBusy ? 'Signing out...' : 'Log out'}
-            </button>
-          </div>
 
-          <div className="topbar-summary">
-            <div>
-              <strong>{farmers.length}</strong>
-              <span>Farmers</span>
-            </div>
-            <div>
-              <strong>{reports.length}</strong>
-              <span>Reports</span>
-            </div>
-            <div>
-              <strong>{advisories.length}</strong>
-              <span>Advisories</span>
-            </div>
-            <div>
-              <strong>{inventory.length}</strong>
-              <span>Inputs</span>
+            {/* avatar */}
+            <div className="ws-avatar" style={{ background: roleAccent }} title={currentProfile?.name}>
+              {(currentProfile?.name ?? currentProfile?.role ?? 'U')[0].toUpperCase()}
             </div>
           </div>
         </header>
 
-        <DashboardRouter state={state} />
+        {/* page content */}
+        <main className="ws-content">
+          <DashboardRouter state={state} />
+        </main>
       </div>
     </div>
   )
@@ -605,6 +593,48 @@ function App() {
       }))
     } catch (error) {
       setStatusMessage(`Authentication failed: ${error.message}`)
+    } finally {
+      setAuthBusy(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    if (!hasFirebaseConfig) {
+      setStatusMessage('Google sign-in is not available without Firebase configuration.')
+      return
+    }
+    setAuthBusy(true)
+    try {
+      await loginWithGoogle()
+      setStatusMessage('Signed in with Google successfully.')
+    } catch (error) {
+      if (error.code === 'auth/no-profile') {
+        // No AgroLink account — pass the google user info back to the UI
+        // so it can pre-fill the register form
+        setStatusMessage(
+          `No AgroLink account found for ${error.googleUser?.email ?? 'this Google account'}. Please create an account first.`
+        )
+        // Return the google user info so AccessPage can pre-fill register form
+        return { noProfile: true, googleUser: error.googleUser }
+      }
+      setStatusMessage(`Google sign-in failed: ${error.message}`)
+    } finally {
+      setAuthBusy(false)
+    }
+    return null
+  }
+
+  const handleGoogleRegister = async () => {
+    if (!hasFirebaseConfig) {
+      setStatusMessage('Google sign-up is not available without Firebase configuration.')
+      return
+    }
+    setAuthBusy(true)
+    try {
+      await registerWithGoogle(authForm.district)
+      setStatusMessage('Account created with Google. Welcome to AgroLink — you have been registered as a farmer.')
+    } catch (error) {
+      setStatusMessage(`Google sign-up failed: ${error.message}`)
     } finally {
       setAuthBusy(false)
     }
@@ -1177,6 +1207,8 @@ function App() {
     handleAdvisoryDelete,
     handleAdvisorySubmit,
     handleAuthSubmit,
+    handleGoogleSignIn,
+    handleGoogleRegister,
     handleFarmerSubmit,
     handleFarmerProfileSubmit,
     handleInventoryDelete,
@@ -1237,9 +1269,12 @@ function App() {
     return <WorkspaceShell dashboardLink={dashboardLink} state={appState} />
   }
 
+  const isHome   = location.pathname === '/'
+  const isAccess = location.pathname === '/access'
+
   return (
-    <PublicShell>
-      {toast ? <div className="toast-banner">{toast}</div> : null}
+    <PublicShell fullWidth={isHome || isAccess}>
+      {toast && !isHome && !isAccess ? <div className="toast-banner">{toast}</div> : null}
       <Routes>
         <Route path="/" element={<OverviewPage />} />
         <Route

@@ -1,0 +1,710 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   AGROLINK WORKSPACE SHELL — workspace.css
+   Hover-expand sidebar · Clean topbar · Card-based content
+═══════════════════════════════════════════════════════════════════════ */
+
+/* ── CSS vars ──────────────────────────────────────────────────────── */
+:root {
+  --ws-sidebar-collapsed: 68px;
+  --ws-sidebar-expanded: 256px;
+  --ws-topbar-h: 64px;
+  --ws-bg: #f1f5f2;
+  --ws-surface: #ffffff;
+  --ws-border: #e2ece5;
+  --ws-text: #111a14;
+  --ws-muted: #5a7262;
+  --ws-green: #15803d;
+  --ws-orange: #ea7a12;
+  --ws-sidebar-bg: #0d1f14;
+  --ws-sidebar-text: rgba(255,255,255,0.7);
+  --ws-sidebar-hover: rgba(255,255,255,0.07);
+  --ws-sidebar-active-bg: rgba(255,255,255,0.12);
+  --ws-radius: 16px;
+  --ws-shadow: 0 2px 12px rgba(13,31,20,0.07);
+}
+
+/* ── shell layout ──────────────────────────────────────────────────── */
+.ws-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--ws-bg);
+  font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ── toast ─────────────────────────────────────────────────────────── */
+.ws-toast {
+  position: fixed;
+  top: 20px; right: 20px;
+  z-index: 999;
+  max-width: 340px;
+  padding: 13px 18px;
+  border-radius: 12px;
+  background: var(--ws-green);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(21,128,61,0.25);
+  animation: wsToastIn 320ms ease both;
+}
+@keyframes wsToastIn {
+  from { opacity:0; transform:translateY(-10px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR — collapses to icon rail, expands on hover/focus
+═══════════════════════════════════════════════════════════════════ */
+.ws-sidebar {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 200;
+  width: var(--ws-sidebar-collapsed);
+  background: var(--ws-sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 240ms cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 2px 0 20px rgba(0,0,0,0.18);
+  /* hide scrollbar in collapsed state */
+  scrollbar-width: none;
+}
+
+/* expand on hover / keyboard focus-within */
+.ws-sidebar:hover,
+.ws-sidebar:focus-within {
+  width: var(--ws-sidebar-expanded);
+}
+
+.ws-sidebar::-webkit-scrollbar { display: none; }
+
+/* when expanded, allow scroll */
+.ws-sidebar:hover,
+.ws-sidebar:focus-within {
+  overflow-y: auto;
+}
+
+/* ── logo ──────────────────────────────────────────────────────────── */
+.ws-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 18px 16px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  min-height: 64px;
+}
+
+.ws-logo-mark {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 1rem;
+  color: #fff;
+  flex-shrink: 0;
+  transition: box-shadow 200ms;
+}
+.ws-sidebar:hover .ws-logo-mark,
+.ws-sidebar:focus-within .ws-logo-mark {
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.15);
+}
+
+.ws-logo-text {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 200ms 60ms ease, transform 200ms 60ms ease;
+}
+.ws-sidebar:hover .ws-logo-text,
+.ws-sidebar:focus-within .ws-logo-text {
+  opacity: 1; transform: translateX(0);
+}
+
+/* ── role badge ────────────────────────────────────────────────────── */
+.ws-role-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.ws-role-icon {
+  font-size: 1.2rem;
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ws-role-info {
+  display: grid;
+  gap: 2px;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 200ms 80ms ease, transform 200ms 80ms ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ws-sidebar:hover .ws-role-info,
+.ws-sidebar:focus-within .ws-role-info {
+  opacity: 1; transform: translateX(0);
+}
+
+.ws-role-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.ws-role-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  letter-spacing: 0.06em;
+}
+
+/* ── nav ───────────────────────────────────────────────────────────── */
+.ws-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  flex: 1;
+}
+
+.ws-nav-group-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.28);
+  padding: 8px 10px 4px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 200ms 60ms ease;
+}
+.ws-sidebar:hover .ws-nav-group-label,
+.ws-sidebar:focus-within .ws-nav-group-label {
+  opacity: 1;
+}
+
+.ws-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--ws-sidebar-text);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: background 160ms ease, color 160ms ease;
+  white-space: nowrap;
+}
+
+.ws-nav-item:hover {
+  background: var(--ws-sidebar-hover);
+  color: rgba(255,255,255,0.95);
+}
+
+.ws-nav-item-active {
+  background: var(--ws-sidebar-active-bg) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+/* orange left pip on active */
+.ws-nav-pip {
+  position: absolute;
+  left: 0; top: 20%; bottom: 20%;
+  width: 3px;
+  border-radius: 999px;
+}
+
+.ws-nav-icon {
+  font-size: 1.1rem;
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.ws-nav-label {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 180ms 40ms ease, transform 180ms 40ms ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ws-sidebar:hover .ws-nav-label,
+.ws-sidebar:focus-within .ws-nav-label {
+  opacity: 1; transform: translateX(0);
+}
+
+/* ── utility nav / divider / status ───────────────────────────────── */
+.ws-nav-util {
+  flex: 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 8px;
+  margin-top: auto;
+}
+
+.ws-sidebar-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 6px 0;
+  flex-shrink: 0;
+}
+
+.ws-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  flex-shrink: 0;
+}
+
+.ws-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ws-status-live  { background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,0.25); }
+.ws-status-demo  { background: var(--ws-orange); box-shadow: 0 0 0 3px rgba(234,122,18,0.25); }
+
+.ws-status-label {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.ws-sidebar:hover .ws-status-label,
+.ws-sidebar:focus-within .ws-status-label {
+  opacity: 1;
+}
+
+.ws-signout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 10px;
+  margin: 4px 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: transparent;
+  color: rgba(255,255,255,0.45);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 160ms, color 160ms, border-color 160ms;
+  flex-shrink: 0;
+}
+.ws-signout:hover {
+  background: rgba(234,122,18,0.14);
+  border-color: rgba(234,122,18,0.3);
+  color: #ea7a12;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MAIN AREA
+═══════════════════════════════════════════════════════════════════ */
+.ws-main {
+  flex: 1;
+  margin-left: var(--ws-sidebar-collapsed);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+  transition: margin-left 240ms cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── topbar ────────────────────────────────────────────────────────── */
+.ws-topbar {
+  position: sticky;
+  top: 0; z-index: 100;
+  height: var(--ws-topbar-h);
+  background: var(--ws-surface);
+  border-bottom: 1px solid var(--ws-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  gap: 20px;
+  box-shadow: 0 1px 0 var(--ws-border), var(--ws-shadow);
+}
+
+.ws-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.ws-greeting-time {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ws-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.ws-greeting-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ws-text);
+  letter-spacing: -0.03em;
+  margin: 3px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ws-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* stat chips */
+.ws-stat-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.ws-stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f4f8f5;
+  border: 1px solid var(--ws-border);
+  white-space: nowrap;
+}
+
+.ws-stat-chip strong {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--ws-text);
+  line-height: 1;
+}
+
+.ws-stat-chip span {
+  font-size: 0.75rem;
+  color: var(--ws-muted);
+  line-height: 1;
+}
+
+.ws-stat-chip-alert {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.ws-stat-chip-alert strong { color: #c2410c; }
+
+/* avatar */
+.ws-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 160ms, box-shadow 160ms;
+}
+.ws-avatar:hover {
+  transform: scale(1.06);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+}
+
+/* ── content area ──────────────────────────────────────────────────── */
+.ws-content {
+  flex: 1;
+  padding: 24px 28px 40px;
+  min-width: 0;
+  animation: wsContentIn 300ms ease both;
+}
+
+@keyframes wsContentIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DASHBOARD CARDS REDESIGN
+   Override App.css card styles for the workspace context
+═══════════════════════════════════════════════════════════════════ */
+
+/* hero panel */
+.ws-content .hero-panel {
+  border-radius: var(--ws-radius);
+  border: 1px solid var(--ws-border);
+  background: linear-gradient(135deg, #0d1f14 0%, #1a3a22 60%, #0f2a18 100%);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(13,31,20,0.15);
+  padding: 28px 32px;
+}
+
+.ws-content .hero-panel .hero-copy-block .eyebrow,
+.ws-content .hero-panel h2,
+.ws-content .hero-panel p {
+  color: rgba(255,255,255,0.9);
+}
+
+.ws-content .hero-panel .hero-accent {
+  background: rgba(234,122,18,0.2);
+  color: #fb923c;
+  border: 1px solid rgba(234,122,18,0.3);
+}
+
+.ws-content .hero-panel .stat-card {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.ws-content .hero-panel .stat-card strong { color: #ffffff; }
+.ws-content .hero-panel .stat-card span   { color: rgba(255,255,255,0.55); }
+
+/* content cards */
+.ws-content .content-card {
+  border-radius: var(--ws-radius);
+  border: 1px solid var(--ws-border);
+  background: var(--ws-surface);
+  box-shadow: var(--ws-shadow);
+  padding: 22px 24px;
+  transition: box-shadow 180ms ease;
+}
+
+.ws-content .content-card:hover {
+  box-shadow: 0 4px 20px rgba(13,31,20,0.1);
+}
+
+/* feed items */
+.ws-content .feed-item {
+  border-radius: 12px;
+  border: 1px solid var(--ws-border);
+  background: #f9fdf9;
+  transition: background 160ms, box-shadow 160ms, transform 160ms;
+}
+
+.ws-content .feed-item:hover {
+  background: #f0faf2;
+  box-shadow: 0 4px 12px rgba(21,128,61,0.08);
+  transform: translateY(-1px);
+}
+
+/* section headings */
+.ws-content .section-title .eyebrow { color: var(--ws-green); }
+.ws-content .section-title h3 {
+  font-size: 1.05rem;
+  color: var(--ws-text);
+}
+
+/* section grid spacing */
+.ws-content .page-grid {
+  margin-top: 20px;
+  gap: 18px;
+}
+
+/* summary tiles */
+.ws-content .summary-tile {
+  border-radius: 12px;
+  background: #f4f8f5;
+  border: 1px solid var(--ws-border);
+  padding: 14px 16px;
+  transition: background 160ms;
+}
+
+.ws-content .summary-tile:hover { background: #eaf5ec; }
+
+/* checklist items */
+.ws-content .checklist-item {
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #f9fdf9;
+  border-color: var(--ws-border);
+  font-size: 0.9rem;
+  color: var(--ws-muted);
+  position: relative;
+  padding-left: 28px;
+}
+
+.ws-content .checklist-item::before {
+  content: '✓';
+  position: absolute;
+  left: 10px;
+  color: var(--ws-green);
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+/* stat cards in hero */
+.ws-content .stat-card {
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+/* planner items */
+.ws-content .planner-item {
+  border-radius: 12px;
+  border-color: var(--ws-border);
+  background: #f9fdf9;
+}
+
+/* empty states */
+.ws-content .empty-state {
+  border-radius: 12px;
+  border: 1.5px dashed #c8dece;
+  background: #f9fdf9;
+  padding: 24px;
+}
+
+/* table */
+.ws-content .table-shell {
+  border-radius: 12px;
+  border-color: var(--ws-border);
+}
+.ws-content .data-table th { background: #f4f8f5; }
+
+/* farmer section cards */
+.ws-content .farmer-section-card {
+  border-color: var(--ws-border);
+  background: var(--section-color, #f4f8f5);
+}
+
+/* farmer welcome card */
+.ws-content .farmer-welcome-card {
+  background: linear-gradient(120deg, #edf8f1 0%, #ffffff 60%);
+  border-color: #c2dfc8;
+}
+
+/* message cards */
+.ws-content .message-card {
+  border-color: var(--ws-border);
+  background: #f9fdf9;
+  border-radius: 12px;
+}
+
+/* faq cards */
+.ws-content .faq-card {
+  border-radius: 12px;
+  border-color: var(--ws-border);
+  background: #f9fdf9;
+  transition: background 160ms;
+}
+.ws-content .faq-card:hover { background: #edf8f1; }
+
+/* contact cards */
+.ws-content .contact-card {
+  border-radius: 12px;
+  border-color: var(--ws-border);
+  background: #f9fdf9;
+}
+
+/* slide panels — keep above sidebar */
+.sp-panel {
+  z-index: 300;
+}
+.sp-backdrop {
+  z-index: 295;
+}
+
+/* farmer screen shell inside ws */
+.ws-content .farmer-screen-shell {
+  background: var(--ws-surface);
+  border-color: var(--ws-border);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SECTION GRID ON DASHBOARD HOME
+═══════════════════════════════════════════════════════════════════ */
+.ws-content .farmer-section-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.ws-content .farmer-section-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 28px rgba(13,31,20,0.1);
+  border-color: #aad4b4;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 1280px) {
+  .ws-stat-chips { display: none; }
+}
+
+@media (max-width: 1024px) {
+  .ws-content .farmer-section-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  :root {
+    --ws-sidebar-collapsed: 0px;
+    --ws-sidebar-expanded: 240px;
+  }
+
+  .ws-sidebar {
+    transform: translateX(-100%);
+    width: var(--ws-sidebar-expanded);
+    transition: transform 240ms cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .ws-sidebar:hover,
+  .ws-sidebar:focus-within {
+    transform: translateX(0);
+    width: var(--ws-sidebar-expanded);
+  }
+
+  /* always show labels on mobile (sidebar is full width when open) */
+  .ws-sidebar .ws-logo-text,
+  .ws-sidebar .ws-role-info,
+  .ws-sidebar .ws-nav-label,
+  .ws-sidebar .ws-nav-group-label,
+  .ws-sidebar .ws-status-label { opacity: 1; transform: translateX(0); }
+
+  .ws-main { margin-left: 0; }
+
+  .ws-topbar { padding: 0 16px; }
+  .ws-content { padding: 16px 14px 32px; }
+
+  .ws-content .farmer-section-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ws-content .page-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .ws-greeting-name { font-size: 1.05rem; }
+  .ws-content .farmer-section-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
