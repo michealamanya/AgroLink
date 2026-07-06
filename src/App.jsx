@@ -54,7 +54,15 @@ import {
 import OverviewPage from './components/OverviewPage'
 import AccessPage from './components/AccessPage'
 import DashboardPage from './components/DashboardPage'
+import AboutPage from './pages/AboutPage'
+import HowItWorksPage from './pages/HowItWorksPage'
+import FeaturesPage from './pages/FeaturesPage'
+import RolesPage from './pages/RolesPage'
+import ImpactPage from './pages/ImpactPage'
+import FaqsPage from './pages/FaqsPage'
+import ContactPage from './pages/ContactPage'
 import { createDisplayTimestamp } from './utils/records'
+import { logAudit, AUDIT_ACTIONS } from './services/audit'
 
 function parseDashboardPath(pathname) {
   const [, dashboardSegment, role, subview] = pathname.split('/')
@@ -597,15 +605,12 @@ function App() {
 
     try {
       if (activeMode === 'register') {
-        await registerUser(authForm)
-        setStatusMessage(
-          `Account created for ${authForm.role}. You can now use your assigned platform workspace.`,
-        )
+        const user = await registerUser(authForm)
+        await logAudit({ uid: user.uid, email: authForm.email, name: authForm.name, role: authForm.role }, AUDIT_ACTIONS.REGISTER, { role: authForm.role, district: authForm.district })
+        setStatusMessage(`Account created for ${authForm.role}. You can now use your assigned platform workspace.`)
       } else {
-        await loginUser({
-          email: authForm.email,
-          password: authForm.password,
-        })
+        const user = await loginUser({ email: authForm.email, password: authForm.password })
+        await logAudit({ uid: user.uid, email: authForm.email }, AUDIT_ACTIONS.LOGIN)
         setStatusMessage('Signed in successfully. Your workspace is now ready.')
       }
 
@@ -658,6 +663,7 @@ function App() {
     setAuthBusy(true)
     try {
       await loginWithGoogle()
+      await logAudit({ uid: currentUser?.uid, email: currentUser?.email, role: currentRole }, AUDIT_ACTIONS.GOOGLE_LOGIN)
       setStatusMessage('Signed in with Google successfully.')
     } catch (error) {
       if (error.code === 'auth/no-profile') {
@@ -701,6 +707,7 @@ function App() {
 
     try {
       await logoutUser()
+      await logAudit({ uid: currentUser.uid, email: currentUser.email, role: currentRole }, AUDIT_ACTIONS.LOGOUT)
       setStatusMessage('Signed out successfully.')
       navigate('/access')
     } catch (error) {
@@ -1331,12 +1338,21 @@ function App() {
 
   const isHome   = location.pathname === '/'
   const isAccess = location.pathname === '/access'
+  const isFullWidth = isHome || isAccess ||
+    ['/about', '/how-it-works', '/features', '/roles', '/impact', '/faqs', '/contact'].includes(location.pathname)
 
   return (
-    <PublicShell fullWidth={isHome || isAccess}>
-      {toast && !isHome && !isAccess ? <div className="toast-banner">{toast}</div> : null}
+    <PublicShell fullWidth={isFullWidth}>
+      {toast && !isFullWidth ? <div className="toast-banner">{toast}</div> : null}
       <Routes>
         <Route path="/" element={<OverviewPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/roles" element={<RolesPage />} />
+        <Route path="/impact" element={<ImpactPage />} />
+        <Route path="/faqs" element={<FaqsPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route
           path="/access"
           element={

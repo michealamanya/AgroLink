@@ -98,12 +98,13 @@ export const homeAudience = [
 ]
 
 export const publicNavLinks = [
-  { label: 'About', href: '#about' },
-  { label: 'Features', href: '#features' },
-  { label: 'Operations', href: '#operations' },
-  { label: 'Roles', href: '#roles' },
-  { label: 'Contact', href: '#contact' },
-  { label: 'FAQs', href: '#faqs' },
+  { label: 'About',        href: '/about' },
+  { label: 'How it works', href: '/how-it-works' },
+  { label: 'Features',     href: '/features' },
+  { label: 'Roles',        href: '/roles' },
+  { label: 'Impact',       href: '/impact' },
+  { label: 'FAQs',         href: '/faqs' },
+  { label: 'Contact',      href: '/contact' },
 ]
 
 export const aboutHighlights = [
