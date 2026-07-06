@@ -578,3 +578,433 @@
   .lp-hero-ctas { flex-direction: column; }
   .lp-cta-primary, .lp-cta-ghost { width: 100%; justify-content: center; }
 }
+
+/* ── Contact section ───────────────────────────────────────────────── */
+.lp-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 48px;
+}
+
+.lp-contact-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  border: 1px solid #e5f0e8;
+  background: #fafdfb;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease, background 200ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.lp-contact-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.6), transparent 50%);
+  pointer-events: none;
+}
+
+.lp-contact-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(13,31,20,0.1);
+  border-color: #aad4b4;
+  background: #f0fdf4;
+}
+
+.lp-contact-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lp-contact-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.lp-contact-icon-email    { background: #fee2e2; color: #dc2626; }
+.lp-contact-icon-whatsapp { background: #dcfce7; color: #16a34a; }
+.lp-contact-icon-x        { background: #f1f5f9; color: #0f172a; }
+.lp-contact-icon-linkedin { background: #dbeafe; color: #1d4ed8; }
+.lp-contact-icon-github   { background: #f3f4f6; color: #111827; }
+.lp-contact-icon-phone    { background: #fef9c3; color: #a16207; }
+
+.lp-contact-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.lp-contact-info strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0d1f14;
+  letter-spacing: -0.01em;
+}
+
+.lp-contact-info span {
+  display: block;
+  font-size: 0.78rem;
+  color: #5a7262;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-contact-arrow {
+  color: #15803d;
+  font-weight: 800;
+  font-size: 1rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.lp-contact-card:hover .lp-contact-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Developer note */
+.lp-dev-note {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 40px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #f4f8f5;
+  border: 1px solid #d1fae5;
+  max-width: 420px;
+}
+
+.lp-dev-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #15803d, #166534);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.lp-dev-note strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0d1f14;
+}
+
+.lp-dev-note p {
+  font-size: 0.78rem;
+  color: #5a7262;
+  margin: 2px 0 0;
+  line-height: 1.4;
+}
+
+/* responsive */
+@media (max-width: 1024px) {
+  .lp-contact-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+  .lp-contact-grid { grid-template-columns: 1fr; }
+  .lp-dev-note { max-width: 100%; }
+}
+
+/* ── Impact stats section ──────────────────────────────────────────── */
+.lp-impact-section {
+  background: linear-gradient(160deg, #0d2818 0%, #133522 60%, #0a1e10 100%);
+  padding: 100px 5vw;
+}
+
+.lp-impact-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.lp-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin: 48px 0 40px;
+}
+
+.lp-impact-card {
+  padding: 28px 24px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: grid;
+  gap: 6px;
+  transition: background 200ms ease, transform 200ms ease;
+}
+
+.lp-impact-card:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-3px);
+}
+
+.lp-impact-icon {
+  font-size: 1.8rem;
+  display: block;
+}
+
+.lp-impact-value {
+  display: block;
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  font-weight: 900;
+  color: #4ade80;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.lp-impact-label {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.4;
+}
+
+.lp-impact-desc {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.55);
+  max-width: 68ch;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ── Testimonials ──────────────────────────────────────────────────── */
+.lp-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 56px;
+}
+
+.lp-testimonial-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 24px;
+  border-radius: 20px;
+  border: 1px solid #e5f0e8;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(13,31,20,0.05);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.lp-testimonial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(13,31,20,0.1);
+}
+
+.lp-testimonial-quote {
+  position: relative;
+}
+
+.lp-testimonial-quote svg {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  color: #15803d;
+}
+
+.lp-testimonial-quote p {
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.7;
+  margin: 0;
+  padding-top: 8px;
+  font-style: italic;
+}
+
+.lp-testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e5f0e8;
+}
+
+.lp-testimonial-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+
+.lp-testimonial-author strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0d1f14;
+}
+
+.lp-testimonial-author span {
+  display: block;
+  font-size: 0.75rem;
+  color: #5a7262;
+  margin-top: 2px;
+}
+
+/* ── Tech trust grid ───────────────────────────────────────────────── */
+.lp-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 52px;
+}
+
+.lp-trust-card {
+  display: grid;
+  gap: 5px;
+  padding: 22px 20px;
+  border-radius: 16px;
+  border: 1px solid #e5f0e8;
+  background: #fafdfb;
+  transition: background 180ms, border-color 180ms, transform 180ms;
+}
+
+.lp-trust-card:hover {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  transform: translateY(-2px);
+}
+
+.lp-trust-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.lp-trust-card strong {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0d1f14;
+}
+
+.lp-trust-card span {
+  font-size: 0.78rem;
+  color: #5a7262;
+  line-height: 1.4;
+}
+
+/* ── responsive additions ──────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .lp-impact-grid       { grid-template-columns: repeat(2, 1fr); }
+  .lp-testimonials-grid { grid-template-columns: 1fr 1fr; }
+  .lp-trust-grid        { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .lp-impact-grid       { grid-template-columns: 1fr 1fr; }
+  .lp-testimonials-grid { grid-template-columns: 1fr; }
+  .lp-trust-grid        { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .lp-impact-grid { grid-template-columns: 1fr 1fr; }
+  .lp-trust-grid  { grid-template-columns: 1fr; }
+}
+
+/* ── Impact section refinements ────────────────────────────────────── */
+.lp-impact-section {
+  background: linear-gradient(160deg, #0b1e12 0%, #112e1a 55%, #09180e 100%);
+  padding: 100px 5vw;
+}
+
+.lp-impact-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.lp-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin: 48px 0 0;
+}
+
+.lp-impact-card {
+  padding: 30px 24px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.09);
+  display: grid;
+  gap: 6px;
+  transition: background 220ms ease, transform 220ms ease, border-color 220ms ease;
+}
+
+.lp-impact-card:hover {
+  background: rgba(255,255,255,0.09);
+  border-color: rgba(74,222,128,0.25);
+  transform: translateY(-4px);
+}
+
+.lp-impact-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.lp-impact-value {
+  display: block;
+  font-size: clamp(2.6rem, 4.5vw, 3.8rem);
+  font-weight: 900;
+  color: #4ade80;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-impact-label {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  margin-top: 2px;
+}
+
+.lp-impact-desc {
+  display: block;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+@media (max-width: 1024px) {
+  .lp-impact-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .lp-impact-grid { grid-template-columns: 1fr 1fr; }
+  .lp-impact-value { font-size: 2.2rem; }
+}
