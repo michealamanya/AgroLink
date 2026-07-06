@@ -1,4 +1,5 @@
 import { summarizeTimestamp } from '../../utils/records'
+import ImageUpload from '../ImageUpload'
 
 /* ─── severity / status badge colours ─────────────────────────────────── */
 const SEVERITY_COLORS = { High: '#fee2e2', Medium: '#fff7ed', Low: '#f0fdf4' }
@@ -79,6 +80,10 @@ function renderFeedRecord(item) {
   if ('severity' in item) {
     return (
       <>
+        {item.imageUrl ? (
+          <img src={item.imageUrl} alt="Field evidence"
+            style={{ width:'100%', maxHeight:'160px', objectFit:'cover', borderRadius:'8px', marginBottom:'8px' }} />
+        ) : null}
         <strong>{item.title}</strong>
         <p>{item.location}</p>
         <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
@@ -91,6 +96,10 @@ function renderFeedRecord(item) {
   if ('focus' in item) {
     return (
       <>
+        {item.photoUrl ? (
+          <img src={item.photoUrl} alt={item.name}
+            style={{ width:'48px', height:'48px', objectFit:'cover', borderRadius:'50%', marginBottom:'6px' }} />
+        ) : null}
         <strong>{item.name}</strong>
         <p>{item.parish}</p>
         <span>{item.focus}</span>
@@ -100,6 +109,10 @@ function renderFeedRecord(item) {
   if ('stock' in item) {
     return (
       <>
+        {item.imageUrl ? (
+          <img src={item.imageUrl} alt={item.item}
+            style={{ width:'100%', maxHeight:'120px', objectFit:'cover', borderRadius:'8px', marginBottom:'8px' }} />
+        ) : null}
         <strong>{item.item}</strong>
         <p>{item.dealer}</p>
         <span>{item.stock} | {item.status}</span>
@@ -195,6 +208,11 @@ export function FarmerProfileManagerCard({
 
       {linkedProfile ? (
         <div className="shared-profile-summary">
+          {linkedProfile.photoUrl ? (
+            <div className="shared-profile-photo-row">
+              <img src={linkedProfile.photoUrl} alt="Profile" className="shared-profile-photo" />
+            </div>
+          ) : null}
           <div className="shared-profile-row">
             <span>Name</span><strong>{linkedProfile.name}</strong>
           </div>
@@ -223,6 +241,12 @@ export function FarmerProfileManagerCard({
       ) : null}
 
       <form className="smart-form" onSubmit={handleFarmerProfileSubmit} style={{ marginTop: '18px' }}>
+        <ImageUpload
+          label="Profile photo"
+          currentUrl={farmerProfileForm.photoUrl}
+          hint="Optional — helps extension officers recognise you"
+          onUploaded={(url) => setFarmerProfileForm(c => ({ ...c, photoUrl: url }))}
+        />
         <label>
           Full name
           <input required placeholder="e.g. Ninsiima Grace" value={farmerProfileForm.name}
@@ -512,6 +536,21 @@ export function ReportFormCard({ reportForm, setReportForm, handleReportSubmit }
             <option>Low</option><option>Medium</option><option>High</option>
           </select>
         </label>
+        <ImageUpload
+          label="Photo evidence (optional)"
+          currentUrl={reportForm.imageUrl}
+          hint="Upload a photo of the affected area — helps officers assess the situation faster"
+          onUploaded={(url) => setReportForm(c => ({ ...c, imageUrl: url }))}
+        />
+        {reportForm.imageUrl ? (
+          <div className="report-image-preview">
+            <img src={reportForm.imageUrl} alt="Field evidence" />
+            <button type="button" className="shared-delete-btn"
+              onClick={() => setReportForm(c => ({ ...c, imageUrl: '' }))}>
+              Remove photo
+            </button>
+          </div>
+        ) : null}
         <button type="submit" className="primary-button">Submit report</button>
       </form>
     </article>
@@ -709,6 +748,12 @@ export function InventoryFormCard({ inventoryForm, setInventoryForm, handleInven
         <h3>Add agro-input stock record</h3>
       </div>
       <form className="smart-form" onSubmit={handleInventorySubmit}>
+        <ImageUpload
+          label="Product image (optional)"
+          currentUrl={inventoryForm.imageUrl}
+          hint="Upload a photo of the product — increases farmer trust in your listing"
+          onUploaded={(url) => setInventoryForm(c => ({ ...c, imageUrl: url }))}
+        />
         <label>Item
           <input required placeholder="e.g. Hybrid maize seed" value={inventoryForm.item}
             onChange={(e) => setInventoryForm((c) => ({ ...c, item: e.target.value }))} />

@@ -42,6 +42,7 @@ import {
   registerUser,
   registerWithGoogle,
   subscribeToAuth,
+  updateUserProfile,
 } from './services/auth'
 import {
   dashboardConfig,
@@ -331,6 +332,13 @@ function App() {
   const [currentProfile, setCurrentProfile] = useState(null)
   const [authBusy, setAuthBusy] = useState(false)
   const [authMode, setAuthMode] = useState('login')
+  const [accountForm, setAccountForm] = useState({
+    name: '',
+    district: '',
+    phone: '',
+    bio: '',
+    photoUrl: '',
+  })
   const [authForm, setAuthForm] = useState({
     district: 'Bushenyi District',
     email: '',
@@ -351,12 +359,14 @@ function App() {
     acreage: '',
     seasonGoal: '',
     channel: 'SMS alerts',
+    photoUrl: '',
   })
   const [reportForm, setReportForm] = useState({
     title: '',
     location: '',
     severity: 'Medium',
     reporter: '',
+    imageUrl: '',
   })
   const [advisoryForm, setAdvisoryForm] = useState({
     title: '',
@@ -369,6 +379,7 @@ function App() {
     dealer: '',
     stock: '',
     status: 'Verified',
+    imageUrl: '',
   })
   const [filters, setFilters] = useState({
     search: '',
@@ -488,6 +499,17 @@ function App() {
         const profile = await getUserProfile(user.uid)
         setCurrentProfile(profile)
 
+        // Pre-fill account settings form from loaded profile
+        if (profile) {
+          setAccountForm({
+            name: profile.name ?? '',
+            district: profile.district ?? '',
+            phone: profile.phone ?? '',
+            bio: profile.bio ?? '',
+            photoUrl: profile.photoUrl ?? '',
+          })
+        }
+
         if (profile?.role) {
           const targetDashboard = `/dashboard/${profile.role}`
 
@@ -540,6 +562,7 @@ function App() {
       acreage: linkedProfile?.acreage ?? '',
       seasonGoal: linkedProfile?.seasonGoal ?? '',
       channel: linkedProfile?.channel ?? 'SMS alerts',
+      photoUrl: linkedProfile?.photoUrl ?? '',
     })
   }, [currentProfile, currentUser, farmers])
 
@@ -559,20 +582,21 @@ function App() {
     return true
   }
 
-  const handleAuthSubmit = async (event) => {
-    event.preventDefault()
+  const handleAuthSubmit = async (event, modeOverride) => {
+    // preventDefault may have been called by the form's onSubmit wrapper already
+    // call it again safely — idempotent on SyntheticEvent
+    if (event?.preventDefault) event.preventDefault()
 
     if (!hasFirebaseConfig) {
-      setStatusMessage(
-        'Authentication is not fully configured yet for this environment.',
-      )
+      setStatusMessage('Authentication is not configured for this environment.')
       return
     }
 
+    const activeMode = modeOverride ?? authMode
     setAuthBusy(true)
 
     try {
-      if (authMode === 'register') {
+      if (activeMode === 'register') {
         await registerUser(authForm)
         setStatusMessage(
           `Account created for ${authForm.role}. You can now use your assigned platform workspace.`,
@@ -592,7 +616,35 @@ function App() {
         password: '',
       }))
     } catch (error) {
+      // Re-throw so AuthForm's local catch can display it inline
       setStatusMessage(`Authentication failed: ${error.message}`)
+      throw error
+    } finally {
+      setAuthBusy(false)
+    }
+  }
+
+  const handleAccountUpdate = async (event) => {
+    event.preventDefault()
+    if (!hasFirebaseConfig || !currentUser) {
+      setStatusMessage('You must be signed in to update your account.')
+      return
+    }
+    setAuthBusy(true)
+    try {
+      const payload = {
+        name: accountForm.name,
+        district: accountForm.district,
+        phone: accountForm.phone ?? '',
+        bio: accountForm.bio ?? '',
+        photoUrl: accountForm.photoUrl ?? '',
+        updatedAt: new Date().toISOString(),
+      }
+      await updateUserProfile(currentUser.uid, payload)
+      setCurrentProfile(prev => ({ ...prev, ...payload }))
+      setStatusMessage('Account settings saved successfully.')
+    } catch (error) {
+      setStatusMessage(`Failed to save account settings: ${error.message}`)
     } finally {
       setAuthBusy(false)
     }
@@ -707,6 +759,7 @@ function App() {
       severity: reportForm.severity,
       status: 'Pending field response',
       reporter: currentProfile?.name ?? reportForm.reporter,
+      imageUrl: reportForm.imageUrl ?? '',
       createdById: currentUser?.uid ?? 'demo-user',
       createdByName: currentProfile?.name ?? reportForm.reporter,
       createdByRole: currentProfile?.role ?? 'demo',
@@ -734,6 +787,7 @@ function App() {
       location: '',
       severity: 'Medium',
       reporter: '',
+      imageUrl: '',
     })
   }
 
@@ -757,6 +811,7 @@ function App() {
       acreage: farmerProfileForm.acreage,
       seasonGoal: farmerProfileForm.seasonGoal,
       channel: farmerProfileForm.channel,
+      photoUrl: farmerProfileForm.photoUrl ?? '',
       createdById: currentUser?.uid ?? 'demo-user',
       createdByName: currentProfile?.name ?? farmerProfileForm.name,
       createdByRole: currentProfile?.role ?? 'farmer',
@@ -1028,6 +1083,7 @@ function App() {
       dealer: inventoryForm.dealer,
       stock: inventoryForm.stock,
       status: inventoryForm.status,
+      imageUrl: inventoryForm.imageUrl ?? '',
       createdById: currentUser?.uid ?? 'demo-user',
       createdByName: currentProfile?.name ?? 'Demo user',
       createdByRole: currentProfile?.role ?? 'demo',
@@ -1053,6 +1109,7 @@ function App() {
       dealer: '',
       stock: '',
       status: 'Verified',
+      imageUrl: '',
     })
   }
 
@@ -1203,6 +1260,9 @@ function App() {
     farmerProfileForm,
     farmers,
     filters,
+    accountForm,
+    setAccountForm,
+    handleAccountUpdate,
     handleAdvisoryChannelChange,
     handleAdvisoryDelete,
     handleAdvisorySubmit,

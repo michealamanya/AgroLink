@@ -5,6 +5,7 @@ import bg from '../assets/background.jpg'
 import bg2 from '../assets/download.webp'
 import bg3 from '../assets/img.jpg'
 import { hasFirebaseConfig } from '../firebase'
+import AccountPage from './AccountPage'
 import AuthForm from './auth/AuthForm'
 
 /* ─── sliding farm images on the left panel ────────────────────────── */
@@ -116,37 +117,9 @@ function AccessPage({ state }) {
     }
   }
 
-  /* signed-in state */
+  /* signed-in → full account settings page */
   if (currentUser) {
-    return (
-      <div className="ap-root">
-        <ImageSlider />
-        <div className="ap-panel">
-          <div className="ap-panel-inner">
-            <div className="ap-signed-in">
-              <div className="ap-signed-in-avatar">
-                {(currentProfile?.name ?? currentUser.email ?? '?')[0].toUpperCase()}
-              </div>
-              <h2 className="ap-title">You're signed in</h2>
-              <p className="ap-subtitle">
-                <strong>{currentProfile?.name ?? currentUser.email}</strong>
-              </p>
-              <p className="ap-subtitle" style={{ marginTop: '4px' }}>
-                Role: <span className="ap-role-chip">{currentProfile?.role ?? 'loading...'}</span>
-              </p>
-              {currentProfile?.role ? (
-                <NavLink to={`/dashboard/${currentProfile.role}`} className="ap-btn-primary" style={{ marginTop: '28px' }}>
-                  Open my dashboard →
-                </NavLink>
-              ) : null}
-              <button type="button" className="ap-btn-ghost" onClick={handleLogout} disabled={authBusy} style={{ marginTop: '14px' }}>
-                {authBusy ? 'Signing out...' : 'Sign out'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <AccountPage state={state} />
   }
 
   return (

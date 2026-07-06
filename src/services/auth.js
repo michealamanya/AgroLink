@@ -6,7 +6,7 @@ import {
   signInWithPopup,
   signOut,
 } from 'firebase/auth'
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
 import { auth, db, hasFirebaseConfig } from '../firebase'
 
 function ensureFirebaseAuth() {
@@ -60,6 +60,11 @@ export async function getUserProfile(uid) {
     id: snapshot.id,
     ...snapshot.data(),
   }
+}
+
+export async function updateUserProfile(uid, payload) {
+  ensureFirebaseAuth()
+  await updateDoc(doc(db, 'users', uid), payload)
 }
 
 export async function loginWithGoogle(roleHint = 'farmer', districtHint = 'Bushenyi District') {

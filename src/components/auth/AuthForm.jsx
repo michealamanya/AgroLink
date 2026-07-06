@@ -17,10 +17,23 @@ function EyeIcon({ open }) {
 
 function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm }) {
   const [showPassword, setShowPassword] = useState(false)
+  const [localError, setLocalError] = useState(null)
   const isRegister = authMode === 'register'
 
+  async function onSubmit(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    setLocalError(null)
+    try {
+      // pass authMode explicitly — never rely on stale App state
+      await handleAuthSubmit(e, authMode)
+    } catch (err) {
+      setLocalError(err?.message ?? 'Something went wrong. Please try again.')
+    }
+  }
+
   return (
-    <form className="ap-form" onSubmit={handleAuthSubmit}>
+    <form className="ap-form" onSubmit={onSubmit} noValidate={false}>
 
       {isRegister ? (
         <>
@@ -72,7 +85,7 @@ function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm 
             className="ap-input ap-input-pw"
             required
             type={showPassword ? 'text' : 'password'}
-            placeholder={isRegister ? 'Create a strong password' : 'Enter your password'}
+            placeholder={isRegister ? 'Create a strong password (min 6 chars)' : 'Enter your password'}
             autoComplete={isRegister ? 'new-password' : 'current-password'}
             value={authForm.password}
             onChange={e => setAuthForm(c => ({ ...c, password: e.target.value }))}
@@ -80,6 +93,7 @@ function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm 
           <button
             type="button"
             className="ap-eye"
+            tabIndex={-1}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             onClick={() => setShowPassword(v => !v)}
           >
@@ -88,7 +102,17 @@ function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm 
         </div>
       </div>
 
-      <button type="submit" className="ap-btn-primary ap-btn-submit" disabled={authBusy}>
+      {localError ? (
+        <div className="ap-form-error" role="alert">
+          {localError}
+        </div>
+      ) : null}
+
+      <button
+        type="submit"
+        className="ap-btn-primary ap-btn-submit"
+        disabled={authBusy}
+      >
         {authBusy
           ? 'Please wait...'
           : isRegister ? 'Create account' : 'Sign in'}
