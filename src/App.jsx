@@ -61,6 +61,7 @@ import RolesPage from './pages/RolesPage'
 import ImpactPage from './pages/ImpactPage'
 import FaqsPage from './pages/FaqsPage'
 import ContactPage from './pages/ContactPage'
+import MarketplacePage from './pages/MarketplacePage'
 import { createDisplayTimestamp } from './utils/records'
 import { logAudit, AUDIT_ACTIONS } from './services/audit'
 
@@ -1339,7 +1340,7 @@ function App() {
   const isHome   = location.pathname === '/'
   const isAccess = location.pathname === '/access'
   const isFullWidth = isHome || isAccess ||
-    ['/about', '/how-it-works', '/features', '/roles', '/impact', '/faqs', '/contact'].includes(location.pathname)
+    ['/about', '/how-it-works', '/features', '/roles', '/impact', '/faqs', '/contact', '/marketplace'].includes(location.pathname)
 
   return (
     <PublicShell fullWidth={isFullWidth}>
@@ -1353,6 +1354,7 @@ function App() {
         <Route path="/impact" element={<ImpactPage />} />
         <Route path="/faqs" element={<FaqsPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/marketplace" element={<MarketplacePage />} />
         <Route
           path="/access"
           element={

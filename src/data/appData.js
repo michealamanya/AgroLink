@@ -101,6 +101,7 @@ export const publicNavLinks = [
   { label: 'About',        href: '/about' },
   { label: 'How it works', href: '/how-it-works' },
   { label: 'Features',     href: '/features' },
+  { label: 'Marketplace',  href: '/marketplace' },
   { label: 'Roles',        href: '/roles' },
   { label: 'Impact',       href: '/impact' },
   { label: 'FAQs',         href: '/faqs' },

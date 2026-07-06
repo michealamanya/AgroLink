@@ -13,6 +13,7 @@ import {
   RoleMismatchCard,
 } from './shared'
 import SlidePanel from './SlidePanel'
+import DistrictAnalytics from './DistrictAnalytics'
 
 /* ─── section config ───────────────────────────────────────────────────── */
 const NAV_SECTIONS = [
@@ -21,6 +22,7 @@ const NAV_SECTIONS = [
   { key: 'advisory',  label: 'Advisories',        icon: '📢', color: '#eff6ff' },
   { key: 'supply',    label: 'Supply Visibility',  icon: '📦', color: '#f0fdf4' },
   { key: 'farmers',   label: 'Farmer Profiles',   icon: '🌾', color: '#f5f3ff' },
+  { key: 'analytics', label: 'Analytics',          icon: '📊', color: '#fafaf9' },
   { key: 'reports',   label: 'Submit Report',     icon: '📋', color: '#fafaf9' },
   { key: 'filters',   label: 'Filters',           icon: '🔍', color: '#f9fafb' },
   { key: 'records',   label: 'All Records',       icon: '🗂️',  color: '#f8fafc' },
@@ -32,6 +34,7 @@ const SECTION_META = {
   advisory:  { eyebrow: 'Advisories',        title: 'Publish and oversee district guidance',   text: 'Coordinate advisory publishing and review what guidance is currently in circulation.' },
   supply:    { eyebrow: 'Supply Visibility', title: 'Agro-input inventory and dealer records', text: 'Add and monitor verified stock lines and flag supply gaps before they affect farmers.' },
   farmers:   { eyebrow: 'Farmer Profiles',   title: 'Register and review farmer records',      text: 'Onboard farmers and review profile coverage across sub-counties.' },
+  analytics: { eyebrow: 'District Analytics', title: 'Aggregated real-time metrics',           text: 'Live view of user registration, marketplace activity, report trends, and advisory reach.' },
   reports:   { eyebrow: 'Submit Report',     title: 'Log a district-level field observation',  text: 'Document an incident or concern directly from the district office.' },
   filters:   { eyebrow: 'Filters',           title: 'Filter the active records',               text: 'Narrow reports, inventory, and advisories by location, severity, or status.' },
   records:   { eyebrow: 'All Records',       title: 'Full district records table',             text: 'Structured table of all reports, advisories, and inventory across the district.' },
@@ -334,6 +337,17 @@ function DistrictDashboard({ context }) {
 
   function getPanelContent(key) {
     switch (key) {
+      case 'analytics': return (
+        <div className="screen-panel full-span">
+          <article className="content-card">
+            <div className="section-title">
+              <span className="eyebrow">District Analytics</span>
+              <h3>Aggregated real-time metrics</h3>
+            </div>
+            <DistrictAnalytics state={state} />
+          </article>
+        </div>
+      )
       case 'situation': return renderSituationPanel()
       case 'incidents': return renderIncidentsPanel()
       case 'advisory':  return renderAdvisoryPanel()
