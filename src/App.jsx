@@ -64,6 +64,7 @@ import ContactPage from './pages/ContactPage'
 import MarketplacePage from './pages/MarketplacePage'
 import { createDisplayTimestamp } from './utils/records'
 import { logAudit, AUDIT_ACTIONS } from './services/audit'
+import { friendlyAuthError } from './utils/authErrors'
 
 function parseDashboardPath(pathname) {
   const [, dashboardSegment, role, subview] = pathname.split('/')
@@ -643,8 +644,8 @@ function App() {
       }))
     } catch (error) {
       // Re-throw so AuthForm's local catch can display it inline
-      setStatusMessage(`Authentication failed: ${error.message}`)
-      throw error
+      setStatusMessage(friendlyAuthError(error))
+      throw new Error(friendlyAuthError(error))
     } finally {
       setAuthBusy(false)
     }
@@ -670,7 +671,7 @@ function App() {
       setCurrentProfile(prev => ({ ...prev, ...payload }))
       setStatusMessage('Account settings saved successfully.')
     } catch (error) {
-      setStatusMessage(`Failed to save account settings: ${error.message}`)
+      setStatusMessage(friendlyAuthError(error))
     } finally {
       setAuthBusy(false)
     }
@@ -688,15 +689,12 @@ function App() {
       setStatusMessage('Signed in with Google successfully.')
     } catch (error) {
       if (error.code === 'auth/no-profile') {
-        // No AgroLink account — pass the google user info back to the UI
-        // so it can pre-fill the register form
         setStatusMessage(
           `No AgroLink account found for ${error.googleUser?.email ?? 'this Google account'}. Please create an account first.`
         )
-        // Return the google user info so AccessPage can pre-fill register form
         return { noProfile: true, googleUser: error.googleUser }
       }
-      setStatusMessage(`Google sign-in failed: ${error.message}`)
+      setStatusMessage(friendlyAuthError(error))
     } finally {
       setAuthBusy(false)
     }
@@ -713,7 +711,7 @@ function App() {
       await registerWithGoogle(authForm.district)
       setStatusMessage('Account created with Google. Welcome to AgroLink — you have been registered as a farmer.')
     } catch (error) {
-      setStatusMessage(`Google sign-up failed: ${error.message}`)
+      setStatusMessage(friendlyAuthError(error))
     } finally {
       setAuthBusy(false)
     }
@@ -732,7 +730,7 @@ function App() {
       setStatusMessage('Signed out successfully.')
       navigate('/access')
     } catch (error) {
-      setStatusMessage(`Sign-out failed: ${error.message}`)
+      setStatusMessage(friendlyAuthError(error))
     } finally {
       setAuthBusy(false)
     }

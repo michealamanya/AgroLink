@@ -1129,3 +1129,45 @@
   .acc-activity-grid { grid-template-columns: 1fr; }
   .acc-sidebar-actions { flex-direction: column; }
 }
+
+/* ── error input state ─────────────────────────────────────────────── */
+.ap-input-error {
+  border-color: #ea7a12 !important;
+  background: rgba(234, 122, 18, 0.06) !important;
+}
+.ap-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(234, 122, 18, 0.18) !important;
+}
+
+/* ── improved error message ────────────────────────────────────────── */
+.ap-form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  background: rgba(234, 122, 18, 0.1);
+  border: 1px solid rgba(234, 122, 18, 0.32);
+  color: #f59c3c;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.5;
+  animation: apNoticeIn 250ms ease both;
+}
+.ap-error-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+/* ── loading spinner inside button ────────────────────────────────── */
+.ap-spinner-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.ap-btn-spinner {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #ffffff;
+  animation: apSpin 650ms linear infinite;
+  flex-shrink: 0;
+}
+@keyframes apSpin { to { transform: rotate(360deg); } }

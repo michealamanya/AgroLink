@@ -17,23 +17,30 @@ function EyeIcon({ open }) {
 
 function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm }) {
   const [showPassword, setShowPassword] = useState(false)
-  const [localError, setLocalError] = useState(null)
+  const [error, setError] = useState(null)
   const isRegister = authMode === 'register'
+
+  // clear error when user starts editing
+  function field(key) {
+    return (e) => {
+      setError(null)
+      setAuthForm(c => ({ ...c, [key]: e.target.value }))
+    }
+  }
 
   async function onSubmit(e) {
     e.preventDefault()
     e.stopPropagation()
-    setLocalError(null)
+    setError(null)
     try {
-      // pass authMode explicitly — never rely on stale App state
       await handleAuthSubmit(e, authMode)
     } catch (err) {
-      setLocalError(err?.message ?? 'Something went wrong. Please try again.')
+      setError(err?.message ?? 'Something went wrong. Please try again.')
     }
   }
 
   return (
-    <form className="ap-form" onSubmit={onSubmit} noValidate={false}>
+    <form className="ap-form" onSubmit={onSubmit} noValidate>
 
       {isRegister ? (
         <>
@@ -44,7 +51,7 @@ function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm 
               required
               placeholder="e.g. Ninsiima Grace"
               value={authForm.name}
-              onChange={e => setAuthForm(c => ({ ...c, name: e.target.value }))}
+              onChange={field('name')}
             />
           </div>
           <div className="ap-field">
@@ -54,7 +61,7 @@ function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm 
               required
               placeholder="Bushenyi District"
               value={authForm.district}
-              onChange={e => setAuthForm(c => ({ ...c, district: e.target.value }))}
+              onChange={field('district')}
             />
           </div>
         </>
@@ -63,13 +70,13 @@ function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm 
       <div className="ap-field">
         <label className="ap-field-label">Email address</label>
         <input
-          className="ap-input"
+          className={`ap-input ${error ? 'ap-input-error' : ''}`}
           required
           type="email"
           placeholder="you@gmail.com"
           autoComplete="email"
           value={authForm.email}
-          onChange={e => setAuthForm(c => ({ ...c, email: e.target.value }))}
+          onChange={field('email')}
         />
       </div>
 
@@ -82,13 +89,13 @@ function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm 
         </div>
         <div className="ap-input-wrap">
           <input
-            className="ap-input ap-input-pw"
+            className={`ap-input ap-input-pw ${error ? 'ap-input-error' : ''}`}
             required
             type={showPassword ? 'text' : 'password'}
-            placeholder={isRegister ? 'Create a strong password (min 6 chars)' : 'Enter your password'}
+            placeholder={isRegister ? 'At least 6 characters' : 'Enter your password'}
             autoComplete={isRegister ? 'new-password' : 'current-password'}
             value={authForm.password}
-            onChange={e => setAuthForm(c => ({ ...c, password: e.target.value }))}
+            onChange={field('password')}
           />
           <button
             type="button"
@@ -102,9 +109,11 @@ function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm 
         </div>
       </div>
 
-      {localError ? (
+      {/* friendly inline error */}
+      {error ? (
         <div className="ap-form-error" role="alert">
-          {localError}
+          <span className="ap-error-icon" aria-hidden="true">⚠️</span>
+          {error}
         </div>
       ) : null}
 
@@ -113,9 +122,12 @@ function AuthForm({ authBusy, authForm, authMode, handleAuthSubmit, setAuthForm 
         className="ap-btn-primary ap-btn-submit"
         disabled={authBusy}
       >
-        {authBusy
-          ? 'Please wait...'
-          : isRegister ? 'Create account' : 'Sign in'}
+        {authBusy ? (
+          <span className="ap-spinner-row">
+            <span className="ap-btn-spinner" />
+            Please wait…
+          </span>
+        ) : isRegister ? 'Create account' : 'Sign in'}
       </button>
     </form>
   )
