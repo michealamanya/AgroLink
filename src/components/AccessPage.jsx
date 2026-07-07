@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import '../auth.css'
-import bg from '../assets/background.jpg'
+import bg from '../assets/background.png'
 import bg2 from '../assets/download.webp'
 import bg3 from '../assets/img.jpg'
 import { hasFirebaseConfig } from '../firebase'

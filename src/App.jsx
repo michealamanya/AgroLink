@@ -172,6 +172,8 @@ function WorkspaceShell({ dashboardLink, state }) {
 
   const roleSectionLinks = sectionLinksByRole[currentProfile?.role] ?? []
 
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   const greeting = (() => {
     const h = new Date().getHours()
     if (h < 12) return 'Good morning'
@@ -182,17 +184,29 @@ function WorkspaceShell({ dashboardLink, state }) {
   const highSeverity = reports.filter(r => r.severity === 'High' && r.status !== 'Resolved').length
 
   return (
-    <div className="ws-shell">
+    <div className={`ws-shell ${sidebarOpen ? 'ws-sidebar-is-open' : ''}`}>
       {toast ? (
         <div className="ws-toast" role="alert">{toast}</div>
       ) : null}
 
+      {/* ── mobile backdrop ─────────────────────────────────────── */}
+      {sidebarOpen ? (
+        <div className="ws-mobile-backdrop" aria-hidden="true"
+          onClick={() => setSidebarOpen(false)} />
+      ) : null}
+
       {/* ── SIDEBAR ─────────────────────────────────────────────── */}
-      <aside className="ws-sidebar" aria-label="Workspace navigation">
-        {/* logo */}
+      <aside
+        className={`ws-sidebar ${sidebarOpen ? 'ws-sidebar-mobile-open' : ''}`}
+        aria-label="Workspace navigation"
+      >
+        {/* logo + mobile close */}
         <div className="ws-logo">
           <div className="ws-logo-mark" style={{ background: roleAccent }}>A</div>
           <span className="ws-logo-text">AgroLink</span>
+          <button type="button" className="ws-mobile-close"
+            aria-label="Close menu"
+            onClick={() => setSidebarOpen(false)}>✕</button>
         </div>
 
         {/* role badge */}
@@ -219,7 +233,7 @@ function WorkspaceShell({ dashboardLink, state }) {
                 style={isActive ? { '--nav-accent': roleAccent } : {}}
                 onClick={() => {
                   navigate(link.to)
-                  if (window.innerWidth < 1024) document.activeElement?.blur()
+                  setSidebarOpen(false)
                 }}
               >
                 <span className="ws-nav-icon" aria-hidden="true">{link.icon}</span>
@@ -235,11 +249,11 @@ function WorkspaceShell({ dashboardLink, state }) {
 
         {/* utility nav */}
         <nav className="ws-nav ws-nav-util" aria-label="Utility navigation">
-          <NavLink to="/" className="ws-nav-item">
+          <NavLink to="/" className="ws-nav-item" onClick={() => setSidebarOpen(false)}>
             <span className="ws-nav-icon" aria-hidden="true">🏠</span>
             <span className="ws-nav-label">Public site</span>
           </NavLink>
-          <NavLink to="/access" className="ws-nav-item">
+          <NavLink to="/access" className="ws-nav-item" onClick={() => setSidebarOpen(false)}>
             <span className="ws-nav-icon" aria-hidden="true">👤</span>
             <span className="ws-nav-label">Account</span>
           </NavLink>
@@ -269,6 +283,12 @@ function WorkspaceShell({ dashboardLink, state }) {
         {/* topbar */}
         <header className="ws-topbar">
           <div className="ws-topbar-left">
+            {/* mobile menu button */}
+            <button type="button" className="ws-menu-btn"
+              aria-label="Open menu"
+              onClick={() => setSidebarOpen(true)}>
+              <span /><span /><span />
+            </button>
             <div className="ws-greeting">
               <span className="ws-greeting-time">{greeting}</span>
               <h1 className="ws-greeting-name">
@@ -291,14 +311,14 @@ function WorkspaceShell({ dashboardLink, state }) {
               {highSeverity > 0 ? (
                 <div className="ws-stat-chip ws-stat-chip-alert">
                   <strong>{highSeverity}</strong>
-                  <span>High severity</span>
+                  <span>High</span>
                 </div>
               ) : null}
-              <div className="ws-stat-chip">
+              <div className="ws-stat-chip ws-stat-chip-hide-sm">
                 <strong>{inventory.length}</strong>
-                <span>Stock lines</span>
+                <span>Stock</span>
               </div>
-              <div className="ws-stat-chip">
+              <div className="ws-stat-chip ws-stat-chip-hide-sm">
                 <strong>{advisories.length}</strong>
                 <span>Advisories</span>
               </div>
