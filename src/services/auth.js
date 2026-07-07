@@ -2,6 +2,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -29,6 +30,11 @@ export async function registerUser({ district, email, name, password, role }) {
   })
 
   return credential.user
+}
+
+export async function resetPassword(email) {
+  ensureFirebaseAuth()
+  await sendPasswordResetEmail(auth, email)
 }
 
 export async function loginUser({ email, password }) {

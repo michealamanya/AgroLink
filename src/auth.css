@@ -1201,3 +1201,49 @@
   line-height: 1.55;
   margin: 0;
 }
+
+/* ── password reset sent screen ────────────────────────────────────── */
+.ap-reset-sent {
+  display: grid;
+  gap: 14px;
+  padding: 8px 0;
+  animation: apNoticeIn 300ms ease both;
+}
+.ap-reset-sent-icon {
+  font-size: 2.4rem;
+  text-align: center;
+  display: block;
+}
+.ap-reset-sent-title {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #f9fafb;
+  letter-spacing: -0.03em;
+  margin: 0;
+  text-align: center;
+}
+.ap-reset-sent-body {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
+  margin: 0;
+  text-align: center;
+}
+.ap-reset-sent-body strong {
+  color: #4ade80;
+  font-weight: 700;
+}
+.ap-reset-sent-hint {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.35);
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+.ap-reset-back {
+  margin: 4px auto 0;
+  width: fit-content;
+  min-height: 40px;
+  padding: 0 20px;
+  font-size: 0.88rem;
+}

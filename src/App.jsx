@@ -41,6 +41,7 @@ import {
   logoutUser,
   registerUser,
   registerWithGoogle,
+  resetPassword,
   subscribeToAuth,
   updateUserProfile,
 } from './services/auth'
@@ -686,6 +687,21 @@ function App() {
     }
   }
 
+  const handleForgotPassword = async (email) => {
+    if (!hasFirebaseConfig) {
+      return { error: 'Password reset is not available without Firebase configuration.' }
+    }
+    if (!email || !email.trim()) {
+      return { error: 'Please enter your email address first, then click Forgot password.' }
+    }
+    try {
+      await resetPassword(email.trim())
+      return { success: true }
+    } catch (error) {
+      return { error: friendlyAuthError(error) }
+    }
+  }
+
   const handleGoogleSignIn = async () => {
     if (!hasFirebaseConfig) {
       setStatusMessage('Google sign-in is not available without Firebase configuration.')
@@ -1317,6 +1333,7 @@ function App() {
     handleAdvisoryDelete,
     handleAdvisorySubmit,
     handleAuthSubmit,
+    handleForgotPassword,
     handleGoogleSignIn,
     handleGoogleRegister,
     handleFarmerSubmit,

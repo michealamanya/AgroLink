@@ -79,7 +79,7 @@ function AccessPage({ state }) {
   const {
     authBusy, authForm,
     currentProfile, currentUser,
-    handleAuthSubmit, handleGoogleSignIn, handleGoogleRegister, handleLogout,
+    handleAuthSubmit, handleForgotPassword, handleGoogleSignIn, handleGoogleRegister, handleLogout,
     setAuthForm, setAuthMode,
   } = state
 
@@ -202,6 +202,7 @@ function AccessPage({ state }) {
             authForm={authForm}
             authMode={mode}
             handleAuthSubmit={handleAuthSubmit}
+            handleForgotPassword={handleForgotPassword}
             setAuthForm={setAuthForm}
           />
 
