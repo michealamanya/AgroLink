@@ -165,6 +165,8 @@ function WorkspaceShell({ dashboardLink, state }) {
       { label: 'Advisories',        icon: '📢', to: '/dashboard/district/advisory' },
       { label: 'Supply Visibility', icon: '📦', to: '/dashboard/district/supply' },
       { label: 'Farmer Profiles',   icon: '🌾', to: '/dashboard/district/farmers' },
+      { label: 'User Management',   icon: '👥', to: '/dashboard/district/users' },
+      { label: 'Analytics',         icon: '📊', to: '/dashboard/district/analytics' },
       { label: 'Submit Report',     icon: '📋', to: '/dashboard/district/reports' },
       { label: 'Filters',           icon: '🔍', to: '/dashboard/district/filters' },
       { label: 'All Records',       icon: '🗂️',  to: '/dashboard/district/records' },

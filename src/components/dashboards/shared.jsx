@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { summarizeTimestamp } from '../../utils/records'
 import ImageUpload from '../ImageUpload'
 
@@ -914,6 +915,143 @@ export function OfficerResponseCard({
   )
 }
 
+/* ─── RecordDetailDrawer ─────────────────────────────────────────────── */
+function RecordDetailDrawer({ record, type, onClose, canManage, onStatusChange, onDelete }) {
+  if (!record) return null
+
+  const handleBackdrop = (e) => { if (e.target === e.currentTarget) onClose() }
+
+  return (
+    <div className="rdd-backdrop" onClick={handleBackdrop} role="dialog" aria-modal="true">
+      <div className="rdd-panel">
+        {/* header */}
+        <div className="rdd-header">
+          <div className="rdd-header-copy">
+            <span className="rdd-type-badge"
+              style={
+                type === 'report'    ? { background:'#fee2e2', color:'#991b1b' } :
+                type === 'advisory'  ? { background:'#eff6ff', color:'#1e40af' } :
+                                       { background:'#f0fdf4', color:'#166534' }
+              }>
+              {type === 'report' ? '⚠️ Report' : type === 'advisory' ? '📢 Advisory' : '📦 Inventory'}
+            </span>
+            <h2 className="rdd-title">
+              {record.title ?? record.name ?? record.item ?? 'Record'}
+            </h2>
+          </div>
+          <button type="button" className="rdd-close" onClick={onClose} aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* photo if present */}
+        {record.imageUrl ? (
+          <div className="rdd-image">
+            <img src={record.imageUrl} alt={record.title ?? record.item ?? 'Record photo'} />
+          </div>
+        ) : null}
+
+        {/* body */}
+        <div className="rdd-body">
+
+          {/* ── REPORT fields ── */}
+          {type === 'report' ? (
+            <>
+              <div className="rdd-row"><span>Location</span><strong>{record.location}</strong></div>
+              <div className="rdd-row">
+                <span>Severity</span>
+                <strong style={{
+                  color: record.severity === 'High' ? '#991b1b' : record.severity === 'Medium' ? '#9a3412' : '#166534',
+                }}>{record.severity}</strong>
+              </div>
+              <div className="rdd-row"><span>Status</span>
+                {canManage ? (
+                  <select className="rdd-select" value={record.status}
+                    onChange={e => onStatusChange?.(record.id, e.target.value)}>
+                    <option>Pending field response</option>
+                    <option>Officer assigned</option>
+                    <option>Verification ongoing</option>
+                    <option>Resolved</option>
+                  </select>
+                ) : <strong>{record.status}</strong>}
+              </div>
+              {record.reporter ? <div className="rdd-row"><span>Reporter</span><strong>{record.reporter}</strong></div> : null}
+              {record.assignedOfficer ? <div className="rdd-row"><span>Officer</span><strong>{record.assignedOfficer}</strong></div> : null}
+              {record.resolutionNotes ? (
+                <div className="rdd-notes">
+                  <span>Resolution notes</span>
+                  <p>{record.resolutionNotes}</p>
+                </div>
+              ) : null}
+              <div className="rdd-row"><span>Logged</span><strong>{summarizeTimestamp(record.createdAtDisplay)}</strong></div>
+            </>
+          ) : null}
+
+          {/* ── ADVISORY fields ── */}
+          {type === 'advisory' ? (
+            <>
+              <div className="rdd-row"><span>Audience</span><strong>{record.audience}</strong></div>
+              <div className="rdd-row"><span>Channel</span><strong>{record.channel}</strong></div>
+              {record.message ? (
+                <div className="rdd-notes">
+                  <span>Message</span>
+                  <p>{record.message}</p>
+                </div>
+              ) : null}
+              <div className="rdd-row"><span>Published by</span><strong>{record.createdByName || '—'}</strong></div>
+              <div className="rdd-row"><span>Date</span><strong>{summarizeTimestamp(record.createdAtDisplay)}</strong></div>
+            </>
+          ) : null}
+
+          {/* ── INVENTORY fields ── */}
+          {type === 'inventory' ? (
+            <>
+              <div className="rdd-row"><span>Dealer</span><strong>{record.dealer}</strong></div>
+              {record.location ? <div className="rdd-row"><span>Location</span><strong>{record.location}</strong></div> : null}
+              <div className="rdd-row"><span>Stock</span><strong>{record.stock}</strong></div>
+              {record.price ? (
+                <div className="rdd-row"><span>Price</span><strong>UGX {Number(record.price).toLocaleString()} / {record.unit}</strong></div>
+              ) : null}
+              {record.description ? (
+                <div className="rdd-notes"><span>Description</span><p>{record.description}</p></div>
+              ) : null}
+              <div className="rdd-row"><span>Status</span>
+                {canManage ? (
+                  <select className="rdd-select" value={record.status}
+                    onChange={e => onStatusChange?.(record.id, e.target.value)}>
+                    <option>Verified</option>
+                    <option>Pending inspection</option>
+                    <option>Restocking soon</option>
+                  </select>
+                ) : <strong>{record.status}</strong>}
+              </div>
+              {record.phone ? (
+                <div className="rdd-row">
+                  <span>Contact</span>
+                  <a href={`tel:${record.phone}`} className="rdd-link">{record.phone}</a>
+                </div>
+              ) : null}
+              <div className="rdd-row"><span>Listed</span><strong>{summarizeTimestamp(record.createdAtDisplay)}</strong></div>
+            </>
+          ) : null}
+        </div>
+
+        {/* footer actions */}
+        {canManage ? (
+          <div className="rdd-footer">
+            <button type="button" className="rdd-delete-btn"
+              onClick={() => { onDelete?.(record.id); onClose() }}>
+              Remove record
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 /* ─── ManagementTable ───────────────────────────────────────────────────── */
 export function ManagementTable({
   advisories, canManageAdvisories, canManageReports, canManageStock,
@@ -921,107 +1059,119 @@ export function ManagementTable({
   handleAdvisoryChannelChange, handleAdvisoryDelete,
   handleInventoryDelete, handleInventoryStatusChange, handleReportStatusChange,
 }) {
+  const [selected, setSelected] = useState(null)
+  const [selectedType, setSelectedType] = useState(null)
+
+  function open(record, type) { setSelected(record); setSelectedType(type) }
+  function close() { setSelected(null); setSelectedType(null) }
+
   return (
-    <article className="content-card full-span">
-      <div className="section-title">
-        <span className="eyebrow">Records Overview</span>
-        <h3>Reports, advisories, and inventory at a glance</h3>
-      </div>
-      <p className="section-lead">
-        Structured view of the current operational records. Use inline controls to update status or remove entries.
-      </p>
-      <div className="table-shell">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Title / Item</th>
-              <th>Location / Audience</th>
-              <th>Status / Channel</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredReports.slice(0, 5).map((report) => (
-              <tr key={`${report.id}-${report.location}`}>
-                <td><Badge text="Report" bg={SEVERITY_COLORS[report.severity] ?? '#f9fafb'} color={SEVERITY_TEXT[report.severity] ?? '#374151'} /></td>
-                <td>{report.title}</td>
-                <td>{report.location}</td>
-                <td>
-                  {canManageReports ? (
-                    <select value={report.status}
-                      onChange={(e) => handleReportStatusChange(report.id, e.target.value)}>
-                      <option>Pending field response</option>
-                      <option>Officer assigned</option>
-                      <option>Verification ongoing</option>
-                      <option>Resolved</option>
-                    </select>
-                  ) : (
-                    <Badge text={report.status} bg={STATUS_COLORS[report.status] ?? '#f9fafb'} color="#374151" />
-                  )}
-                </td>
-                <td>
-                  {report.assignedOfficer
-                    ? `${report.assignedOfficer} · ${summarizeTimestamp(report.updatedAtDisplay ?? report.createdAtDisplay)}`
-                    : canManageReports ? 'Assign officer' : '—'}
-                </td>
+    <>
+      <article className="content-card full-span">
+        <div className="section-title">
+          <span className="eyebrow">Records Overview</span>
+          <h3>Reports, advisories, and inventory at a glance</h3>
+        </div>
+        <p className="section-lead">
+          Click any row to view full details. Use inline controls to update status.
+        </p>
+        <div className="table-shell">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Title / Item</th>
+                <th>Location / Audience / Dealer</th>
+                <th>Status / Channel</th>
+                <th>Action</th>
               </tr>
-            ))}
-            {advisories.slice(0, 2).map((advisory) => (
-              <tr key={`${advisory.id}-${advisory.audience}`}>
-                <td><Badge text="Advisory" bg="#eff6ff" color="#1e40af" /></td>
-                <td>{advisory.title}</td>
-                <td>{advisory.audience}</td>
-                <td>
-                  {canManageAdvisories ? (
-                    <select value={advisory.channel}
-                      onChange={(e) => handleAdvisoryChannelChange(advisory.id, e.target.value)}>
-                      <option>SMS</option>
-                      <option>Field bulletin</option>
-                      <option>Web dashboard</option>
-                    </select>
-                  ) : advisory.channel}
-                </td>
-                <td>
-                  {canManageAdvisories ? (
-                    <div className="table-action-group">
-                      <span className="meta-inline">{summarizeTimestamp(advisory.createdAtDisplay)}</span>
-                      <button type="button" className="table-action danger-action"
-                        onClick={() => handleAdvisoryDelete(advisory.id)}>Remove</button>
-                    </div>
-                  ) : summarizeTimestamp(advisory.createdAtDisplay)}
-                </td>
-              </tr>
-            ))}
-            {filteredInventory.slice(0, 3).map((entry) => (
-              <tr key={`${entry.id}-${entry.dealer}`}>
-                <td><Badge text="Inventory" bg="#f0fdf4" color="#166534" /></td>
-                <td>{entry.item}</td>
-                <td>{entry.dealer}</td>
-                <td>
-                  {canManageStock ? (
-                    <select value={entry.status}
-                      onChange={(e) => handleInventoryStatusChange(entry.id, e.target.value)}>
-                      <option>Verified</option>
-                      <option>Pending inspection</option>
-                      <option>Restocking soon</option>
-                    </select>
-                  ) : entry.status}
-                </td>
-                <td>
-                  {canManageStock ? (
-                    <div className="table-action-group">
-                      <span className="meta-inline">{summarizeTimestamp(entry.createdAtDisplay)}</span>
-                      <button type="button" className="table-action danger-action"
-                        onClick={() => handleInventoryDelete(entry.id)}>Remove</button>
-                    </div>
-                  ) : summarizeTimestamp(entry.createdAtDisplay)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </article>
+            </thead>
+            <tbody>
+              {filteredReports.slice(0, 5).map((report) => (
+                <tr key={`${report.id}-${report.location}`} className="table-row-clickable"
+                  onClick={() => open(report, 'report')}>
+                  <td><Badge text="Report" bg={SEVERITY_COLORS[report.severity] ?? '#f9fafb'} color={SEVERITY_TEXT[report.severity] ?? '#374151'} /></td>
+                  <td className="table-cell-primary">{report.title}</td>
+                  <td>{report.location}</td>
+                  <td onClick={e => e.stopPropagation()}>
+                    {canManageReports ? (
+                      <select value={report.status}
+                        onChange={(e) => handleReportStatusChange(report.id, e.target.value)}>
+                        <option>Pending field response</option>
+                        <option>Officer assigned</option>
+                        <option>Verification ongoing</option>
+                        <option>Resolved</option>
+                      </select>
+                    ) : (
+                      <Badge text={report.status} bg={STATUS_COLORS[report.status] ?? '#f9fafb'} color="#374151" />
+                    )}
+                  </td>
+                  <td><span className="table-view-hint">View →</span></td>
+                </tr>
+              ))}
+              {advisories.slice(0, 2).map((advisory) => (
+                <tr key={`${advisory.id}-${advisory.audience}`} className="table-row-clickable"
+                  onClick={() => open(advisory, 'advisory')}>
+                  <td><Badge text="Advisory" bg="#eff6ff" color="#1e40af" /></td>
+                  <td className="table-cell-primary">{advisory.title}</td>
+                  <td>{advisory.audience}</td>
+                  <td onClick={e => e.stopPropagation()}>
+                    {canManageAdvisories ? (
+                      <select value={advisory.channel}
+                        onChange={(e) => handleAdvisoryChannelChange(advisory.id, e.target.value)}>
+                        <option>SMS</option>
+                        <option>Field bulletin</option>
+                        <option>Web dashboard</option>
+                      </select>
+                    ) : advisory.channel}
+                  </td>
+                  <td><span className="table-view-hint">View →</span></td>
+                </tr>
+              ))}
+              {filteredInventory.slice(0, 3).map((entry) => (
+                <tr key={`${entry.id}-${entry.dealer}`} className="table-row-clickable"
+                  onClick={() => open(entry, 'inventory')}>
+                  <td><Badge text="Inventory" bg="#f0fdf4" color="#166534" /></td>
+                  <td className="table-cell-primary">{entry.item}</td>
+                  <td>{entry.dealer}</td>
+                  <td onClick={e => e.stopPropagation()}>
+                    {canManageStock ? (
+                      <select value={entry.status}
+                        onChange={(e) => handleInventoryStatusChange(entry.id, e.target.value)}>
+                        <option>Verified</option>
+                        <option>Pending inspection</option>
+                        <option>Restocking soon</option>
+                      </select>
+                    ) : entry.status}
+                  </td>
+                  <td><span className="table-view-hint">View →</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <RecordDetailDrawer
+        record={selected}
+        type={selectedType}
+        onClose={close}
+        canManage={
+          (selectedType === 'report' && canManageReports) ||
+          (selectedType === 'advisory' && canManageAdvisories) ||
+          (selectedType === 'inventory' && canManageStock)
+        }
+        onStatusChange={
+          selectedType === 'report'    ? handleReportStatusChange :
+          selectedType === 'inventory' ? handleInventoryStatusChange :
+          undefined
+        }
+        onDelete={
+          selectedType === 'advisory'  ? handleAdvisoryDelete :
+          selectedType === 'inventory' ? handleInventoryDelete :
+          undefined
+        }
+      />
+    </>
   )
 }

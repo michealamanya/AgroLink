@@ -6,7 +6,7 @@ import {
   signInWithPopup,
   signOut,
 } from 'firebase/auth'
-import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
+import { doc, collection, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
 import { auth, db, hasFirebaseConfig } from '../firebase'
 
 function ensureFirebaseAuth() {
@@ -64,6 +64,28 @@ export async function getUserProfile(uid) {
 
 export async function updateUserProfile(uid, payload) {
   ensureFirebaseAuth()
+  await updateDoc(doc(db, 'users', uid), payload)
+}
+
+/**
+ * Admin: fetch all platform users from the users collection.
+ * Only district officers should call this.
+ */
+export async function getAllUsers() {
+  ensureFirebaseAuth()
+  const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+/**
+ * Admin: update a user's role and/or status.
+ */
+export async function updateUserRole(uid, { role, status }) {
+  ensureFirebaseAuth()
+  const payload = {}
+  if (role   !== undefined) payload.role   = role
+  if (status !== undefined) payload.status = status
   await updateDoc(doc(db, 'users', uid), payload)
 }
 
