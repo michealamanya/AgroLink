@@ -74,14 +74,6 @@ function GoogleIcon() {
   )
 }
 
-/* ─── role select chips ─────────────────────────────────────────────── */
-const ROLES = [
-  { value: 'farmer',    label: '🌾 Farmer' },
-  { value: 'extension', label: '🧑‍💼 Extension' },
-  { value: 'dealer',    label: '🏪 Dealer' },
-  { value: 'district',  label: '🏛️ District' },
-]
-
 /* ─── main page ─────────────────────────────────────────────────────── */
 function AccessPage({ state }) {
   const {
@@ -183,8 +175,7 @@ function AccessPage({ state }) {
               {/* Register mode Google hint */}
               {mode === 'register' ? (
                 <p className="ap-google-hint">
-                  Signing up with Google creates a <strong>farmer</strong> account by default.
-                  Use the email form below to register as a different role.
+                  Sign up with Google to create a farmer account instantly.
                 </p>
               ) : null}
 
@@ -194,21 +185,13 @@ function AccessPage({ state }) {
             </>
           ) : null}
 
-          {/* role chips — only shown in register mode */}
+          {/* role notice for register mode */}
           {mode === 'register' ? (
-            <div className="ap-role-section">
-              <span className="ap-role-label">Select your role</span>
-              <div className="ap-role-chips">
-                {ROLES.map(r => (
-                  <button
-                    key={r.value}
-                    type="button"
-                    className={`ap-role-chip-btn ${authForm.role === r.value ? 'ap-role-chip-active' : ''}`}
-                    onClick={() => setAuthForm(c => ({ ...c, role: r.value }))}
-                  >
-                    {r.label}
-                  </button>
-                ))}
+            <div className="ap-role-notice">
+              <span className="ap-role-notice-icon">🌾</span>
+              <div>
+                <strong>All new accounts start as Farmer</strong>
+                <p>Your account role can be upgraded by the system administrator after registration if you are an extension officer, dealer, or district official.</p>
               </div>
             </div>
           ) : null}

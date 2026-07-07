@@ -1381,3 +1381,23 @@
   .mp-modal-body { grid-template-columns: 1fr; }
 }
 @media (max-width: 540px) { .mp-grid { grid-template-columns: 1fr; } }
+
+/* ── marketplace skeleton loader ───────────────────────────────────── */
+.mp-loading-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.mp-skeleton {
+  height: 280px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #f0f4f1 25%, #e8f0ea 50%, #f0f4f1 75%);
+  background-size: 200% 100%;
+  animation: mpShimmer 1.4s ease infinite;
+}
+@keyframes mpShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (max-width: 1100px) { .mp-loading-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px)  { .mp-loading-grid { grid-template-columns: 1fr; } }

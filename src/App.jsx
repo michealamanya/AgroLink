@@ -406,8 +406,15 @@ function App() {
   })
   const [inventoryForm, setInventoryForm] = useState({
     item: '',
+    category: '',
+    description: '',
     dealer: '',
+    location: '',
     stock: '',
+    price: '',
+    unit: '',
+    phone: '',
+    whatsapp: '',
     status: 'Verified',
     imageUrl: '',
   })
@@ -1106,8 +1113,16 @@ function App() {
     const nextInventoryItem = {
       id: createLocalId(),
       item: inventoryForm.item,
+      category: inventoryForm.category || 'Seeds',
+      description: inventoryForm.description || '',
       dealer: inventoryForm.dealer,
+      location: inventoryForm.location || '',
+      subcounty: inventoryForm.location || '',
       stock: inventoryForm.stock,
+      price: Number(inventoryForm.price) || 0,
+      unit: inventoryForm.unit || 'unit',
+      phone: inventoryForm.phone || '',
+      whatsapp: (inventoryForm.whatsapp || inventoryForm.phone || '').replace(/\D/g, ''),
       status: inventoryForm.status,
       imageUrl: inventoryForm.imageUrl ?? '',
       createdById: currentUser?.uid ?? 'demo-user',
@@ -1132,8 +1147,15 @@ function App() {
     setInventory((current) => [nextInventoryItem, ...current])
     setInventoryForm({
       item: '',
+      category: '',
+      description: '',
       dealer: '',
+      location: '',
       stock: '',
+      price: '',
+      unit: '',
+      phone: '',
+      whatsapp: '',
       status: 'Verified',
       imageUrl: '',
     })

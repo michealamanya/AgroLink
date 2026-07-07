@@ -741,40 +741,121 @@ export function AdvisoryFormCard({ advisoryForm, setAdvisoryForm, handleAdvisory
 
 /* ─── InventoryFormCard ─────────────────────────────────────────────────── */
 export function InventoryFormCard({ inventoryForm, setInventoryForm, handleInventorySubmit }) {
+  const f = (key) => (e) => setInventoryForm(c => ({ ...c, [key]: e.target.value }))
   return (
     <article className="content-card">
       <div className="section-title">
-        <span className="eyebrow">Inventory Update</span>
-        <h3>Add agro-input stock record</h3>
+        <span className="eyebrow">List a Product</span>
+        <h3>Add agro-input to the marketplace</h3>
       </div>
+      <p className="section-lead">
+        Every field you fill in will be visible to farmers on the public marketplace.
+        The more detail you provide, the more trust you build.
+      </p>
       <form className="smart-form" onSubmit={handleInventorySubmit}>
+
+        {/* product image */}
         <ImageUpload
-          label="Product image (optional)"
+          label="Product photo"
           currentUrl={inventoryForm.imageUrl}
-          hint="Upload a photo of the product — increases farmer trust in your listing"
+          hint="A clear photo of the actual product increases farmer confidence"
           onUploaded={(url) => setInventoryForm(c => ({ ...c, imageUrl: url }))}
         />
-        <label>Item
-          <input required placeholder="e.g. Hybrid maize seed" value={inventoryForm.item}
-            onChange={(e) => setInventoryForm((c) => ({ ...c, item: e.target.value }))} />
+
+        {/* core fields */}
+        <label>
+          Product name
+          <input required placeholder="e.g. Hybrid Maize Seed (NARO 5)" value={inventoryForm.item}
+            onChange={f('item')} />
         </label>
-        <label>Dealer
-          <input required placeholder="e.g. Bushenyi Agro Centre" value={inventoryForm.dealer}
-            onChange={(e) => setInventoryForm((c) => ({ ...c, dealer: e.target.value }))} />
-        </label>
-        <label>Stock quantity
-          <input required placeholder="e.g. 120 bags" value={inventoryForm.stock}
-            onChange={(e) => setInventoryForm((c) => ({ ...c, stock: e.target.value }))} />
-        </label>
-        <label>Verification status
-          <select value={inventoryForm.status}
-            onChange={(e) => setInventoryForm((c) => ({ ...c, status: e.target.value }))}>
-            <option>Verified</option>
-            <option>Pending inspection</option>
-            <option>Restocking soon</option>
+
+        <label>
+          Category
+          <select value={inventoryForm.category || ''} onChange={f('category')} required>
+            <option value="">Select category…</option>
+            <option>Seeds</option>
+            <option>Fertilizers</option>
+            <option>Agrochemicals</option>
+            <option>Animal Health</option>
+            <option>Tools &amp; Equipment</option>
           </select>
         </label>
-        <button type="submit" className="primary-button">Add stock record</button>
+
+        <label>
+          Product description
+          <textarea required rows="3"
+            placeholder="Describe the product — type, use, application rate, certification, maturity, etc."
+            value={inventoryForm.description || ''}
+            onChange={f('description')} />
+        </label>
+
+        {/* pricing */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+          <label>
+            Price (UGX)
+            <input required type="number" min="0" placeholder="e.g. 45000"
+              value={inventoryForm.price || ''}
+              onChange={f('price')} />
+          </label>
+          <label>
+            Price unit
+            <input required placeholder="e.g. bag, kg, litre, unit, dose"
+              value={inventoryForm.unit || ''}
+              onChange={f('unit')} />
+          </label>
+        </div>
+
+        {/* stock & status */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+          <label>
+            Stock available
+            <input required placeholder="e.g. 120 bags, 50 litres"
+              value={inventoryForm.stock}
+              onChange={f('stock')} />
+          </label>
+          <label>
+            Verification status
+            <select value={inventoryForm.status} onChange={f('status')}>
+              <option>Verified</option>
+              <option>Pending inspection</option>
+              <option>Restocking soon</option>
+            </select>
+          </label>
+        </div>
+
+        {/* dealer info */}
+        <label>
+          Your shop / business name
+          <input required placeholder="e.g. Bushenyi Agro Centre" value={inventoryForm.dealer}
+            onChange={f('dealer')} />
+        </label>
+
+        <label>
+          Location (sub-county / town)
+          <input required placeholder="e.g. Bushenyi Town, Ishaka, Kakanju"
+            value={inventoryForm.location || ''}
+            onChange={f('location')} />
+        </label>
+
+        {/* contact */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+          <label>
+            Phone number
+            <input type="tel" required placeholder="+256 7XX XXX XXX"
+              value={inventoryForm.phone || ''}
+              onChange={f('phone')} />
+          </label>
+          <label>
+            WhatsApp number
+            <input type="tel" placeholder="256XXXXXXXXX (no + or spaces)"
+              value={inventoryForm.whatsapp || ''}
+              onChange={f('whatsapp')} />
+          </label>
+        </div>
+
+        <button type="submit" className="primary-button" style={{ marginTop:'6px' }}>
+          Publish to marketplace
+        </button>
       </form>
     </article>
   )
